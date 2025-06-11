@@ -1,0 +1,38 @@
+services:
+  tafbe:
+    image: overzoom/tafbe:latest
+    container_name: tafbe
+    mem_limit: 512m
+    mem_reservation: 256m
+    env_file:
+      - .env
+    depends_on:
+      - tafbedb
+    networks:
+      - taf_net
+    restart: always
+
+  tafbedb:
+    image: mongo
+    container_name: tafbedb
+    mem_limit: 512m
+    mem_reservation: 256m
+    logging:
+      options:
+        max-size: 200m
+    ports:
+      - "7480:27017"
+    volumes:
+      - tafbedb:/data/db
+    env_file:
+      - .env
+    networks:
+      - taf_net
+    restart: always
+
+networks:
+  taf_net:
+    driver: bridge
+
+volumes:
+  tafbedb:
