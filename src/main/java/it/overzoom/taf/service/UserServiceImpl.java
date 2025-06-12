@@ -39,8 +39,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Optional<User> update(User user) {
         return this.findById(user.getId()).map(existingUser -> {
-            existingUser.setFirstName(user.getFirstName());
-            existingUser.setLastName(user.getLastName());
+            existingUser.setName(user.getName());
+            existingUser.setSurname(user.getSurname());
             existingUser.setPhoto(user.getPhoto());
             existingUser.setBirthDate(user.getBirthDate());
             return existingUser;
@@ -54,11 +54,11 @@ public class UserServiceImpl implements UserService {
                     if (user.getUserId() != null) {
                         existingUser.setUserId(user.getUserId());
                     }
-                    if (user.getFirstName() != null) {
-                        existingUser.setFirstName(user.getFirstName());
+                    if (user.getName() != null) {
+                        existingUser.setName(user.getName());
                     }
-                    if (user.getLastName() != null) {
-                        existingUser.setLastName(user.getLastName());
+                    if (user.getSurname() != null) {
+                        existingUser.setSurname(user.getSurname());
                     }
                     if (user.getPhoto() != null) {
                         existingUser.setPhoto(user.getPhoto());

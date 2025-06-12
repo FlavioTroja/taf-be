@@ -4,3 +4,35 @@ server:
 spring:
     application:
         name: taf
+    data:
+        mongodb:
+            authentication-database: admin
+            database: ${SPRING_DATA_MONGODB_DATABASE:tafdb}
+            host: ${SPRING_DATA_MONGODB_HOST:localhost}
+            password: ${SPRING_DATA_MONGODB_PASSWORD:secr3t}
+            port: ${SPRING_DATA_MONGODB_PORT:7481}
+            username: ${SPRING_DATA_MONGODB_USERNAME:admin}
+            auto-index-creation: true
+    servlet:
+        multipart:
+            max-file-size: 2MB
+            max-request-size: 2MB  
+    security:
+        oauth2:
+            client:
+                registration:
+                    cognito:
+                        client-id: ${COGNITO_CLIENT_ID}
+                        client-secret: ${COGNITO_CLIENT_SECRET}
+                        scope:
+                        - email
+                        - openid
+                        - profile
+                        # Spring Security by default uses a redirect-uri in the format: {baseUrl}/login/oauth2/code/{registrationId}
+                        # For example: http://localhost:8080/login/oauth2/code/cognito
+                        # See more: https://docs.spring.io/spring-security/reference/servlet/oauth2/login/core.html#oauth2login-sample-redirect-uri
+                        redirect-uri: https://d84l1y8p4kdic.cloudfront.net
+                provider:
+                    cognito:
+                        issuerUri: https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_bSXSXHEow
+                        user-name-attribute: username             

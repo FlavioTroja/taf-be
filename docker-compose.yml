@@ -1,7 +1,7 @@
 services:
-  tafbe:
-    image: overzoom/tafbe:latest
-    container_name: tafbe
+  taf:
+    image: overzoom/taf:latest
+    container_name: taf
     mem_limit: 512m
     mem_reservation: 256m
     ports:
@@ -9,14 +9,14 @@ services:
     env_file:
       - .env
     depends_on:
-      - tafbedb
+      - tafdb
     networks:
       - taf_net
     restart: always
 
-  tafbedb:
+  tafdb:
     image: mongo
-    container_name: tafbedb
+    container_name: tafdb
     mem_limit: 512m
     mem_reservation: 256m
     logging:
@@ -25,7 +25,7 @@ services:
     ports:
       - "7481:27017"
     volumes:
-      - tafbedb:/data/db
+      - tafdb:/data/db
     env_file:
       - .env
     networks:
@@ -37,4 +37,4 @@ networks:
     driver: bridge
 
 volumes:
-  tafbedb:
+  tafdb:

@@ -1,8 +1,8 @@
 package it.overzoom.taf.model;
 
-import java.sql.Blob;
 import java.time.LocalDate;
 
+import org.bson.types.Binary;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -16,13 +16,15 @@ public class User {
     @Indexed
     private String userId;
 
-    private String firstName;
+    private String name;
 
-    private String lastName;
+    private String surname;
+
+    private String email;
 
     private LocalDate birthDate;
 
-    private Blob photo;
+    private Binary photo;
 
     private String[] roles;
 
@@ -50,28 +52,20 @@ public class User {
         this.userId = userId;
     }
 
-    public Blob getPhoto() {
-        return photo;
+    public String getName() {
+        return name;
     }
 
-    public void setPhoto(Blob photo) {
-        this.photo = photo;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getSurname() {
+        return surname;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setSurname(String surname) {
+        this.surname = surname;
     }
 
     public String[] getRoles() {
@@ -80,6 +74,22 @@ public class User {
 
     public void setRoles(String[] roles) {
         this.roles = roles;
+    }
+
+    public Binary getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(Binary photo) {
+        this.photo = photo;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
 }

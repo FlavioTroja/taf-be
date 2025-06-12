@@ -2,16 +2,17 @@ package it.overzoom.taf.dto;
 
 import java.time.LocalDate;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 public class UserDTO {
 
     private String id;
     private String userId;
     @NotNull
-    private String firstName;
+    private String name;
     @NotNull
-    private String lastName;
+    private String surname;
+    private String email;
     private LocalDate birthDate;
     private String photo;
     private String[] roles;
@@ -40,20 +41,20 @@ public class UserDTO {
         this.photo = photo;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getName() {
+        return name;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getLastName() {
-        return lastName;
+    public String getSurname() {
+        return surname;
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setSurname(String surname) {
+        this.surname = surname;
     }
 
     public String[] getRoles() {
@@ -70,5 +71,13 @@ public class UserDTO {
 
     public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

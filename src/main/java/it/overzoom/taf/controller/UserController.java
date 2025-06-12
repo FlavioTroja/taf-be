@@ -1,11 +1,11 @@
 package it.overzoom.taf.controller;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.validation.Valid;
-
 import org.apache.coyote.BadRequestException;
+import org.bson.types.Binary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -18,17 +18,20 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-import it.overzoom.registry.dto.UserDTO;
-import it.overzoom.registry.mapper.UserMapper;
-import it.overzoom.registry.security.SecurityUtils;
+import it.overzoom.taf.dto.UserDTO;
+import it.overzoom.taf.exception.ResourceNotFoundException;
+import it.overzoom.taf.mapper.UserMapper;
 import it.overzoom.taf.model.User;
 import it.overzoom.taf.service.UserService;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.ResourceNotFoundException;
+import it.overzoom.taf.utils.SecurityUtils;
+import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/registry/users")
+@RequestMapping("/api/users")
 public class UserController {
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
@@ -44,17 +47,13 @@ public class UserController {
     public ResponseEntity<Page<UserDTO>> findAll(
             Pageable pageable) {
         log.info("REST request to get a page of Users");
-        Page<UserDTO> page = userService.findAll(pageable);
-        return ResponseEntity.ok().body(page);
+        Page<User> page = userService.findAll(pageable);
+        return ResponseEntity.ok().body(page.map(userMapper::toDto));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> findById(@PathVariable("id") String userId)
             throws ResourceNotFoundException, BadRequestException {
-
-        if (!userService.hasAccess(userId)) {
-            throw new BadRequestException("Non hai i permessi per accedere a questo utente.");
-        }
 
         return userService.findById(SecurityUtils.getCurrentUserId()).map(userMapper::toDto)
                 .map(ResponseEntity::ok)
@@ -68,7 +67,7 @@ public class UserController {
                 .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato."));
     }
 
-    @PostMapping("")
+    @PostMapping("/create")
     public ResponseEntity<User> create(@Valid @RequestBody UserDTO userDTO)
             throws BadRequestException, URISyntaxException {
         log.info("REST request to save User : " + userDTO.toString());
@@ -110,8 +109,28 @@ public class UserController {
         }
         User user = userMapper.toEntity(userDTO);
         User updateUser = userService.partialUpdate(id, user)
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente non trovato con questo ID :: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con questo ID :: " + id));
 
         return ResponseEntity.ok().body(userMapper.toDto(updateUser));
     }
+
+    @PostMapping("/{id}/upload-photo")
+    public ResponseEntity<UserDTO> uploadUserPhoto(@PathVariable("id") String id,
+            @RequestParam("file") MultipartFile file) throws ResourceNotFoundException, IOException {
+        User user = userService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID :: " + id));
+        try {
+
+            Binary photoBinary = new Binary(file.getBytes());
+
+            user.setPhoto(photoBinary);
+            userService.create(user);
+
+            return ResponseEntity.ok(userMapper.toDto(user));
+
+        } catch (IOException e) {
+            throw new RuntimeException("Errore durante il caricamento del file", e);
+        }
+    }
+
 }
