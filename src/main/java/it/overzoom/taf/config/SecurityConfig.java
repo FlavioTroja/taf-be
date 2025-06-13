@@ -21,6 +21,11 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/auth/login", "/api/auth/register",
                                                                 "/api/auth/confirm")
                                                 .permitAll()
+                                                .requestMatchers(
+                                                                "/swagger-ui.html",
+                                                                "/swagger-ui/**",
+                                                                "/api-docs/**")
+                                                .permitAll()
                                                 .anyRequest().authenticated())
                                 .oauth2ResourceServer(oauth2 -> oauth2
                                                 .jwt(jwt -> jwt.jwkSetUri(

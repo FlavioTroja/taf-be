@@ -1,6 +1,6 @@
 package it.overzoom.taf.model;
 
-public enum CategoryType {
+public enum ActivityType {
     FOOD,
     CULTURE,
     NATURE,

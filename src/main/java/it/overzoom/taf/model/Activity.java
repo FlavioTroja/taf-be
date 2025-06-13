@@ -20,7 +20,7 @@ public class Activity {
     private String[] openingHours;
     private String website;
     private String description;
-    private CategoryType category;
+    private ActivityType type;
     private String[] tags;
     @Indexed
     private String municipalityId;
@@ -113,12 +113,12 @@ public class Activity {
         this.openingHours = openingHours;
     }
 
-    public CategoryType getCategory() {
-        return category;
+    public ActivityType getType() {
+        return type;
     }
 
-    public void setCategory(CategoryType category) {
-        this.category = category;
+    public void setType(ActivityType type) {
+        this.type = type;
     }
 
     public String[] getTags() {

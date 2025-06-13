@@ -1,6 +1,6 @@
 package it.overzoom.taf.dto;
 
-import it.overzoom.taf.model.CategoryType;
+import it.overzoom.taf.model.ActivityType;
 import jakarta.validation.constraints.NotNull;
 
 public class ActivityDTO {
@@ -17,7 +17,7 @@ public class ActivityDTO {
     private String[] openingHours;
     private String website;
     private String description;
-    private CategoryType category;
+    private ActivityType type;
     private String[] tags;
     @NotNull
     private String municipalityId;
@@ -110,12 +110,12 @@ public class ActivityDTO {
         this.description = description;
     }
 
-    public CategoryType getCategory() {
-        return category;
+    public ActivityType getType() {
+        return type;
     }
 
-    public void setCategory(CategoryType category) {
-        this.category = category;
+    public void setType(ActivityType type) {
+        this.type = type;
     }
 
     public String[] getTags() {

@@ -54,7 +54,7 @@ public class ActivityServiceImpl implements ActivityService {
             existing.setOpeningHours(activity.getOpeningHours());
             existing.setWebsite(activity.getWebsite());
             existing.setDescription(activity.getDescription());
-            existing.setCategory(activity.getCategory());
+            existing.setType(activity.getType());
             existing.setTags(activity.getTags());
             return existing;
         }).map(activityRepository::save);
@@ -84,8 +84,8 @@ public class ActivityServiceImpl implements ActivityService {
                 existing.setWebsite(activity.getWebsite());
             if (activity.getDescription() != null)
                 existing.setDescription(activity.getDescription());
-            if (activity.getCategory() != null)
-                existing.setCategory(activity.getCategory());
+            if (activity.getType() != null)
+                existing.setType(activity.getType());
             if (activity.getTags() != null)
                 existing.setTags(activity.getTags());
             return existing;
