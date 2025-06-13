@@ -1,89 +1,46 @@
 package it.overzoom.taf.mapper;
 
 import java.util.Base64;
+import java.util.stream.Stream;
 
 import org.bson.types.Binary;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 import it.overzoom.taf.dto.EventDTO;
 import it.overzoom.taf.model.Event;
 
-@Component
-public class EventMapper {
+@Mapper(componentModel = "spring")
+public interface EventMapper {
 
-    public EventDTO toDto(Event event) {
-        if (event == null)
-            return null;
+    @Mapping(source = "photos", target = "photos", qualifiedByName = "binaryArrayToBase64Array")
+    EventDTO toDto(Event entity);
 
-        EventDTO dto = new EventDTO();
-        dto.setId(event.getId());
-        dto.setTitle(event.getTitle());
-        dto.setDescription(event.getDescription());
-        dto.setType(event.getType());
-        dto.setStartDateTime(event.getStartDateTime());
-        dto.setEndDateTime(event.getEndDateTime());
-        dto.setLocation(event.getLocation());
-        dto.setPhotos(convertBinaryArrayToBase64(event.getPhotos()));
-        dto.setOrganizer(event.getOrganizer());
-        dto.setContactEmail(event.getContactEmail());
-        dto.setContactPhone(event.getContactPhone());
-        dto.setTags(event.getTags());
-        dto.setMunicipalityId(event.getMunicipalityId());
-        dto.setActivityId(event.getActivityId());
-        dto.setMaxParticipants(event.getMaxParticipants());
-        dto.setCurrentParticipants(event.getCurrentParticipants());
-        dto.setIsPublic(event.getIsPublic());
-        dto.setIsCancelled(event.getIsCancelled());
-        dto.setUrl(event.getUrl());
+    @Mapping(source = "photos", target = "photos", qualifiedByName = "base64ArrayToBinaryArray")
+    Event toEntity(EventDTO dto);
 
-        return dto;
+    @Named("binaryToBase64")
+    static String binaryToBase64(Binary binary) {
+        return binary != null ? Base64.getEncoder().encodeToString(binary.getData()) : null;
     }
 
-    public Event toEntity(EventDTO dto) {
-        if (dto == null)
-            return null;
-
-        Event event = new Event();
-        event.setId(dto.getId());
-        event.setTitle(dto.getTitle());
-        event.setDescription(dto.getDescription());
-        event.setType(dto.getType());
-        event.setStartDateTime(dto.getStartDateTime());
-        event.setEndDateTime(dto.getEndDateTime());
-        event.setLocation(dto.getLocation());
-        event.setPhotos(convertBase64ArrayToBinary(dto.getPhotos()));
-        event.setOrganizer(dto.getOrganizer());
-        event.setContactEmail(dto.getContactEmail());
-        event.setContactPhone(dto.getContactPhone());
-        event.setTags(dto.getTags());
-        event.setMunicipalityId(dto.getMunicipalityId());
-        event.setActivityId(dto.getActivityId());
-        event.setMaxParticipants(dto.getMaxParticipants());
-        event.setCurrentParticipants(dto.getCurrentParticipants());
-        event.setIsPublic(dto.getIsPublic());
-        event.setIsCancelled(dto.getIsCancelled());
-        event.setUrl(dto.getUrl());
-
-        return event;
+    @Named("base64ToBinary")
+    static Binary base64ToBinary(String base64) {
+        return base64 != null ? new Binary(Base64.getDecoder().decode(base64)) : null;
     }
 
-    private String[] convertBinaryArrayToBase64(Binary[] binaries) {
-        if (binaries == null)
-            return null;
-        String[] base64 = new String[binaries.length];
-        for (int i = 0; i < binaries.length; i++) {
-            base64[i] = Base64.getEncoder().encodeToString(binaries[i].getData());
-        }
-        return base64;
+    @Named("binaryArrayToBase64Array")
+    static String[] binaryArrayToBase64Array(Binary[] binaries) {
+        return binaries != null
+                ? Stream.of(binaries).map(EventMapper::binaryToBase64).toArray(String[]::new)
+                : null;
     }
 
-    private Binary[] convertBase64ArrayToBinary(String[] base64Strings) {
-        if (base64Strings == null)
-            return null;
-        Binary[] binaries = new Binary[base64Strings.length];
-        for (int i = 0; i < base64Strings.length; i++) {
-            binaries[i] = new Binary(Base64.getDecoder().decode(base64Strings[i]));
-        }
-        return binaries;
+    @Named("base64ArrayToBinaryArray")
+    static Binary[] base64ArrayToBinaryArray(String[] base64Array) {
+        return base64Array != null
+                ? Stream.of(base64Array).map(EventMapper::base64ToBinary).toArray(Binary[]::new)
+                : null;
     }
 }
