@@ -22,7 +22,9 @@ public class SecurityConfig {
                                                                 "/api/auth/confirm")
                                                 .permitAll()
                                                 .anyRequest().authenticated())
-                                .oauth2ResourceServer(oauth2 -> oauth2.jwt())
+                                .oauth2ResourceServer(oauth2 -> oauth2
+                                                .jwt(jwt -> jwt.jwkSetUri(
+                                                                "https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_bSXSXHEow/.well-known/jwks.json")))
                                 .logout(logout -> logout.logoutSuccessHandler(new CognitoLogoutHandler()));
 
                 return http.build();

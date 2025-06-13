@@ -66,6 +66,11 @@ public class AuthController {
         public String confirmPassword;
     }
 
+    public static class ConfirmRequest {
+        public String email;
+        public String confirmationCode;
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         String secretHash = calculateSecretHash(
@@ -141,11 +146,6 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "Registration failed: " + e.getMessage()));
         }
-    }
-
-    public static class ConfirmRequest {
-        public String email;
-        public String confirmationCode;
     }
 
     @PostMapping("/confirm")
