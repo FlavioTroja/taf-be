@@ -27,7 +27,6 @@ import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.UserMapper;
 import it.overzoom.taf.model.User;
 import it.overzoom.taf.service.UserService;
-import it.overzoom.taf.utils.SecurityUtils;
 import jakarta.validation.Valid;
 
 @RestController
@@ -60,13 +59,6 @@ public class UserController {
         }
 
         return userService.findById(userId).map(userMapper::toDto)
-                .map(ResponseEntity::ok)
-                .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato."));
-    }
-
-    @GetMapping("/profile")
-    public ResponseEntity<UserDTO> getMyProfile() throws ResourceNotFoundException {
-        return userService.findById(SecurityUtils.getCurrentUserId()).map(userMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato."));
     }

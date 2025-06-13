@@ -11,13 +11,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import it.overzoom.taf.dto.UserDTO;
+import it.overzoom.taf.exception.ResourceNotFoundException;
+import it.overzoom.taf.mapper.UserMapper;
 import it.overzoom.taf.model.User;
 import it.overzoom.taf.service.UserService;
+import it.overzoom.taf.utils.SecurityUtils;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AuthFlowType;
@@ -37,24 +42,27 @@ public class AuthController {
 
     private final CognitoIdentityProviderClient cognito;
     private final UserService userService;
+    private final UserMapper userMapper;
     private final String clientId;
     private final String clientSecret;
     private final String userPoolId;
 
     public AuthController(CognitoIdentityProviderClient cognito,
             UserService userService,
+            UserMapper userMapper,
             @Value("${COGNITO_CLIENT_ID}") String clientId,
             @Value("${COGNITO_CLIENT_SECRET}") String clientSecret,
             @Value("${COGNITO_USER_POOL_ID}") String userPoolId) {
         this.cognito = cognito;
         this.userService = userService;
+        this.userMapper = userMapper;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.userPoolId = userPoolId;
     }
 
     public static class LoginRequest {
-        public String username;
+        public String usernameOrEmail;
         public String password;
     }
 
@@ -74,13 +82,13 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         String secretHash = calculateSecretHash(
-                req.username, clientId, clientSecret);
-        log.info("Logging in user: {}", req.username);
+                req.usernameOrEmail, clientId, clientSecret);
+        log.info("Logging in user: {}", req.usernameOrEmail);
         InitiateAuthRequest authReq = InitiateAuthRequest.builder()
                 .authFlow(AuthFlowType.USER_PASSWORD_AUTH)
                 .clientId(clientId)
                 .authParameters(Map.of(
-                        "USERNAME", req.username,
+                        "USERNAME", req.usernameOrEmail,
                         "PASSWORD", req.password,
                         "SECRET_HASH", secretHash))
                 .build();
@@ -164,6 +172,13 @@ public class AuthController {
             log.error("Failed to confirm sign up", e);
             return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
         }
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<UserDTO> getMyProfile() throws ResourceNotFoundException {
+        return userService.findById(SecurityUtils.getCurrentUserId()).map(userMapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato."));
     }
 
     private static String calculateSecretHash(String userName,
