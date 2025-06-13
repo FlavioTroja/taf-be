@@ -2,7 +2,6 @@ package it.overzoom.taf.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -19,13 +18,11 @@ public class SecurityConfig {
                 http
                                 .csrf(csrf -> csrf.disable())
                                 .authorizeHttpRequests(authz -> authz
-                                                .requestMatchers(
-                                                                "/api/auth/login",
-                                                                "/api/auth/register",
+                                                .requestMatchers("/api/auth/login", "/api/auth/register",
                                                                 "/api/auth/confirm")
                                                 .permitAll()
                                                 .anyRequest().authenticated())
-                                .oauth2Login(Customizer.withDefaults())
+                                .oauth2ResourceServer(oauth2 -> oauth2.jwt())
                                 .logout(logout -> logout.logoutSuccessHandler(new CognitoLogoutHandler()));
 
                 return http.build();

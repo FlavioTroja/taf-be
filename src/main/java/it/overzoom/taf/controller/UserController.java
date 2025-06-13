@@ -55,7 +55,11 @@ public class UserController {
     public ResponseEntity<UserDTO> findById(@PathVariable("id") String userId)
             throws ResourceNotFoundException, BadRequestException {
 
-        return userService.findById(SecurityUtils.getCurrentUserId()).map(userMapper::toDto)
+        if (!userService.hasAccess(userId)) {
+            throw new BadRequestException("Non hai i permessi per accedere a questo utente.");
+        }
+
+        return userService.findById(userId).map(userMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato."));
     }
@@ -87,11 +91,11 @@ public class UserController {
             throw new BadRequestException("ID invalido.");
         }
         if (!userService.existsById(userDTO.getId())) {
-            throw new ResourceNotFoundException("Cliente non trovato.");
+            throw new ResourceNotFoundException("Utente non trovato.");
         }
         User user = userMapper.toEntity(userDTO);
         User updateUser = userService.update(user).orElseThrow(
-                () -> new ResourceNotFoundException("Cliente non trovato con questo ID :: " + user.getId()));
+                () -> new ResourceNotFoundException("Utente non trovato con questo ID :: " + user.getId()));
 
         return ResponseEntity.ok().body(userMapper.toDto(updateUser));
     }

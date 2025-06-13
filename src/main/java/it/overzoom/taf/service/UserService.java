@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.model.User;
 
 public interface UserService {
@@ -20,4 +21,6 @@ public interface UserService {
     Optional<User> update(User user);
 
     Optional<User> partialUpdate(String id, User user);
+
+    boolean hasAccess(String userId) throws ResourceNotFoundException;
 }

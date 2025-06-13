@@ -33,8 +33,21 @@ spring:
                     cognito:
                         issuerUri: https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_ezfmvZVI2
                         user-name-attribute: username
+            resourceserver:
+                jwt:
+                    issuer-uri: https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_bSXSXHEow            
 
-
+logging:
+  level:
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.security.oauth2.client: DEBUG
+    org.springframework.security.oauth2.jwt: DEBUG
+    org.springframework.security.oauth2.server.resource: DEBUG
+    org.springframework.security.oauth2.server.resource.authentication: DEBUG
+    org.springframework.security.oauth2.server.resource.web: DEBUG
+    org.springframework.security.oauth2.server.resource.introspection: DEBUG
+    org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter: DEBUG
+    org.springframework.security: DEBUG
 
 cognito:
   region: eu-central-1                        

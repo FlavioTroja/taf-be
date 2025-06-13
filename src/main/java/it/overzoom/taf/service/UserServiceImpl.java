@@ -7,8 +7,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.model.User;
 import it.overzoom.taf.repository.UserRepository;
+import it.overzoom.taf.utils.SecurityUtils;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -24,7 +26,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public Optional<User> findById(String userId) {
-        return userRepository.findByUserId(userId);
+        return userRepository.findById(userId);
     }
 
     public boolean existsById(String id) {
@@ -38,30 +40,23 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public Optional<User> update(User user) {
-        return this.findById(user.getId()).map(existingUser -> {
+        return userRepository.findById(user.getId()).map(existingUser -> {
             existingUser.setName(user.getName());
             existingUser.setSurname(user.getSurname());
-            existingUser.setPhoto(user.getPhoto());
             existingUser.setBirthDate(user.getBirthDate());
             return existingUser;
-        }).map(this::create);
+        }).map(userRepository::save);
     }
 
     @Transactional
     public Optional<User> partialUpdate(String id, User user) {
-        return this.findById(id)
+        return userRepository.findById(id)
                 .map(existingUser -> {
-                    if (user.getUserId() != null) {
-                        existingUser.setUserId(user.getUserId());
-                    }
                     if (user.getName() != null) {
                         existingUser.setName(user.getName());
                     }
                     if (user.getSurname() != null) {
                         existingUser.setSurname(user.getSurname());
-                    }
-                    if (user.getPhoto() != null) {
-                        existingUser.setPhoto(user.getPhoto());
                     }
                     if (user.getBirthDate() != null) {
                         existingUser.setBirthDate(user.getBirthDate());
@@ -69,6 +64,10 @@ public class UserServiceImpl implements UserService {
 
                     return existingUser;
                 })
-                .map(this::create);
+                .map(userRepository::save);
+    }
+
+    public boolean hasAccess(String userId) throws ResourceNotFoundException {
+        return SecurityUtils.isAdmin() || SecurityUtils.isCurrentUser(userId);
     }
 }
