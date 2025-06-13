@@ -28,11 +28,13 @@ spring:
                         - email
                         - openid
                         - profile
-                        # Spring Security by default uses a redirect-uri in the format: {baseUrl}/login/oauth2/code/{registrationId}
-                        # For example: http://localhost:8080/login/oauth2/code/cognito
-                        # See more: https://docs.spring.io/spring-security/reference/servlet/oauth2/login/core.html#oauth2login-sample-redirect-uri
-                        redirect-uri: https://d84l1y8p4kdic.cloudfront.net
+                        redirect-uri: http://localhost:4200/login/oauth2/code/cognito
                 provider:
                     cognito:
-                        issuerUri: https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_bSXSXHEow
-                        user-name-attribute: username             
+                        issuerUri: https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_ezfmvZVI2
+                        user-name-attribute: username
+
+
+
+cognito:
+  region: eu-central-1                        

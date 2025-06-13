@@ -16,22 +16,24 @@ public class SecurityConfig {
 
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                CognitoLogoutHandler cognitoLogoutHandler = new CognitoLogoutHandler();
-
-                http.csrf(Customizer.withDefaults())
+                http
+                                .csrf(csrf -> csrf.disable())
                                 .authorizeHttpRequests(authz -> authz
-                                                .requestMatchers("/api/login").permitAll()
-                                                .anyRequest()
-                                                .authenticated())
+                                                .requestMatchers(
+                                                                "/api/auth/login",
+                                                                "/api/auth/register",
+                                                                "/api/auth/confirm")
+                                                .permitAll()
+                                                .anyRequest().authenticated())
                                 .oauth2Login(Customizer.withDefaults())
-                                .logout(logout -> logout.logoutSuccessHandler(cognitoLogoutHandler));
+                                .logout(logout -> logout.logoutSuccessHandler(new CognitoLogoutHandler()));
+
                 return http.build();
         }
 
         @Bean
-        CorsConfigurationSource corsConfigurationSource() {
+        public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration config = new CorsConfiguration();
-
                 config.addAllowedOriginPattern("*");
                 config.addAllowedHeader("*");
                 config.addAllowedMethod("*");

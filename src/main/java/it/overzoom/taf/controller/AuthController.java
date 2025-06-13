@@ -143,6 +143,29 @@ public class AuthController {
         }
     }
 
+    public static class ConfirmRequest {
+        public String email;
+        public String confirmationCode;
+    }
+
+    @PostMapping("/confirm")
+    public ResponseEntity<?> confirm(@RequestBody ConfirmRequest req) {
+        String secretHash = calculateSecretHash(req.email, clientId, clientSecret);
+
+        try {
+            cognito.confirmSignUp(builder -> builder
+                    .clientId(clientId)
+                    .username(req.email)
+                    .confirmationCode(req.confirmationCode)
+                    .secretHash(secretHash));
+
+            return ResponseEntity.ok(Map.of("status", "Account confirmed successfully"));
+        } catch (Exception e) {
+            log.error("Failed to confirm sign up", e);
+            return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
+        }
+    }
+
     private static String calculateSecretHash(String userName,
             String clientId,
             String clientSecret) {
