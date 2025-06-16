@@ -28,6 +28,7 @@ public class SecurityConfig {
                                                 .permitAll()
                                                 .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**")
                                                 .permitAll()
+                                                .requestMatchers("/api/news/latest").permitAll()
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                                 .anyRequest().authenticated())
                                 .oauth2ResourceServer(oauth2 -> oauth2

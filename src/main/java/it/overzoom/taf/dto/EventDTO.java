@@ -3,12 +3,16 @@ package it.overzoom.taf.dto;
 import java.time.LocalDateTime;
 
 import it.overzoom.taf.model.EventType;
+import jakarta.validation.constraints.NotNull;
 
 public class EventDTO {
     private String id;
+    @NotNull
     private String title;
     private String description;
+    @NotNull
     private EventType type;
+    @NotNull
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
     private String location;
@@ -17,6 +21,7 @@ public class EventDTO {
     private String contactEmail;
     private String contactPhone;
     private String[] tags;
+    @NotNull
     private String municipalityId;
     private String activityId;
     private Integer maxParticipants;

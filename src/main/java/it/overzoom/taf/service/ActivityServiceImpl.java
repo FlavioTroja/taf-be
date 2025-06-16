@@ -91,4 +91,10 @@ public class ActivityServiceImpl implements ActivityService {
             return existing;
         }).map(activityRepository::save);
     }
+
+    @Override
+    @Transactional
+    public void deleteById(String id) {
+        activityRepository.deleteById(id);
+    }
 }

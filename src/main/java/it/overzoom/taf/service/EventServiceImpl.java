@@ -109,4 +109,10 @@ public class EventServiceImpl implements EventService {
             return existing;
         }).map(eventRepository::save);
     }
+
+    @Override
+    @Transactional
+    public void deleteById(String id) {
+        eventRepository.deleteById(id);
+    }
 }

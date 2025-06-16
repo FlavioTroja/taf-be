@@ -29,6 +29,15 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(userId);
     }
 
+    public Optional<User> findByUserId(String userId) {
+        return userRepository.findByUserId(userId);
+    }
+
+    public User getProfile() throws ResourceNotFoundException {
+        return userRepository.findByUserId(SecurityUtils.getCurrentUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato"));
+    }
+
     public boolean existsById(String id) {
         return userRepository.existsById(id);
     }

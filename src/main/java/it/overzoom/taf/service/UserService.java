@@ -14,6 +14,10 @@ public interface UserService {
 
     Optional<User> findById(String userId);
 
+    Optional<User> findByUserId(String userId);
+
+    User getProfile() throws ResourceNotFoundException;
+
     boolean existsById(String id);
 
     User create(User user);

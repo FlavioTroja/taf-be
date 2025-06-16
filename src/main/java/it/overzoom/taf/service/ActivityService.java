@@ -20,4 +20,6 @@ public interface ActivityService {
     Optional<Activity> update(Activity activity);
 
     Optional<Activity> partialUpdate(String id, Activity activity);
+
+    void deleteById(String id);
 }

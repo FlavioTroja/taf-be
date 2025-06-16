@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -99,5 +100,15 @@ public class ActivityController {
                 .orElseThrow(() -> new ResourceNotFoundException("Attività non trovata con questo ID :: " + id));
 
         return ResponseEntity.ok().body(activityMapper.toDto(updated));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable("id") String id) throws ResourceNotFoundException {
+        log.info("REST request to delete Activity with ID: {}", id);
+        if (!activityService.existsById(id)) {
+            throw new ResourceNotFoundException("Attività non trovata.");
+        }
+        activityService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

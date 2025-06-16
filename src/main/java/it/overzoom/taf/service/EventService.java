@@ -20,4 +20,6 @@ public interface EventService {
     Optional<Event> update(Event event);
 
     Optional<Event> partialUpdate(String id, Event event);
+
+    void deleteById(String id);
 }

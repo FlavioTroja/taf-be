@@ -176,7 +176,7 @@ public class AuthController {
 
     @GetMapping("/profile")
     public ResponseEntity<UserDTO> getMyProfile() throws ResourceNotFoundException {
-        return userService.findById(SecurityUtils.getCurrentUserId()).map(userMapper::toDto)
+        return userService.findByUserId(SecurityUtils.getCurrentUserId()).map(userMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato."));
     }
