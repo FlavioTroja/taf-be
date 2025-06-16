@@ -2,6 +2,7 @@ package it.overzoom.taf.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
@@ -27,7 +28,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/municipals")
-public class MunicipalController {
+public class MunicipalController extends BaseSearchController<Municipal, MunicipalDTO> {
 
     private static final Logger log = LoggerFactory.getLogger(MunicipalController.class);
     private final MunicipalService municipalService;
@@ -36,6 +37,21 @@ public class MunicipalController {
     public MunicipalController(MunicipalService municipalService, MunicipalMapper municipalMapper) {
         this.municipalService = municipalService;
         this.municipalMapper = municipalMapper;
+    }
+
+    @Override
+    protected String getCollectionName() {
+        return "municipal";
+    }
+
+    @Override
+    protected Class<Municipal> getEntityClass() {
+        return Municipal.class;
+    }
+
+    @Override
+    protected Function<Municipal, MunicipalDTO> toDtoMapper() {
+        return municipalMapper::toDto;
     }
 
     @GetMapping("")

@@ -2,6 +2,7 @@ package it.overzoom.taf.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
@@ -31,7 +32,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/news")
-public class NewsController {
+public class NewsController extends BaseSearchController<News, NewsDTO> {
 
     private static final Logger log = LoggerFactory.getLogger(NewsController.class);
     private final NewsService newsService;
@@ -40,6 +41,21 @@ public class NewsController {
     public NewsController(NewsService newsService, NewsMapper newsMapper) {
         this.newsService = newsService;
         this.newsMapper = newsMapper;
+    }
+
+    @Override
+    protected String getCollectionName() {
+        return "news";
+    }
+
+    @Override
+    protected Class<News> getEntityClass() {
+        return News.class;
+    }
+
+    @Override
+    protected Function<News, NewsDTO> toDtoMapper() {
+        return newsMapper::toDto;
     }
 
     @GetMapping("")

@@ -3,6 +3,7 @@ package it.overzoom.taf.controller;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
 import org.bson.types.Binary;
@@ -31,7 +32,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/users")
-public class UserController {
+public class UserController extends BaseSearchController<User, UserDTO> {
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
@@ -40,6 +41,21 @@ public class UserController {
     public UserController(UserService userService, UserMapper userMapper) {
         this.userService = userService;
         this.userMapper = userMapper;
+    }
+
+    @Override
+    protected String getCollectionName() {
+        return "user";
+    }
+
+    @Override
+    protected Class<User> getEntityClass() {
+        return User.class;
+    }
+
+    @Override
+    protected Function<User, UserDTO> toDtoMapper() {
+        return userMapper::toDto;
     }
 
     @GetMapping("")

@@ -2,6 +2,7 @@ package it.overzoom.taf.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
@@ -28,7 +29,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/events")
-public class EventController {
+public class EventController extends BaseSearchController<Event, EventDTO> {
 
     private static final Logger log = LoggerFactory.getLogger(EventController.class);
     private final EventService eventService;
@@ -37,6 +38,21 @@ public class EventController {
     public EventController(EventService eventService, EventMapper eventMapper) {
         this.eventService = eventService;
         this.eventMapper = eventMapper;
+    }
+
+    @Override
+    protected String getCollectionName() {
+        return "event";
+    }
+
+    @Override
+    protected Class<Event> getEntityClass() {
+        return Event.class;
+    }
+
+    @Override
+    protected Function<Event, EventDTO> toDtoMapper() {
+        return eventMapper::toDto;
     }
 
     @GetMapping("")

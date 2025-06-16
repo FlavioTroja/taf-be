@@ -6,12 +6,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,7 +33,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/config/hidden")
-public class ConfigController {
+public class ConfigController extends BaseSearchController<Config, ConfigDTO> {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigController.class);
     private final ConfigService configService;
@@ -47,11 +46,19 @@ public class ConfigController {
         this.configMapper = configMapper;
     }
 
-    @PostMapping("")
-    public ResponseEntity<Page<ConfigDTO>> findAll(Pageable pageable) {
-        log.info("REST request to get a page of Configs");
-        Page<Config> page = configService.findAll(pageable);
-        return ResponseEntity.ok().body(page.map(configMapper::toDto));
+    @Override
+    protected String getCollectionName() {
+        return "config";
+    }
+
+    @Override
+    protected Class<Config> getEntityClass() {
+        return Config.class;
+    }
+
+    @Override
+    protected Function<Config, ConfigDTO> toDtoMapper() {
+        return configMapper::toDto;
     }
 
     @GetMapping("/{id}")

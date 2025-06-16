@@ -2,6 +2,7 @@ package it.overzoom.taf.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
@@ -33,7 +34,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/notifications")
-public class NotificationController {
+public class NotificationController extends BaseSearchController<Notification, NotificationDTO> {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationController.class);
     private final NotificationService notificationService;
@@ -45,6 +46,21 @@ public class NotificationController {
         this.notificationService = notificationService;
         this.userService = userService;
         this.notificationMapper = notificationMapper;
+    }
+
+    @Override
+    protected String getCollectionName() {
+        return "notification";
+    }
+
+    @Override
+    protected Class<Notification> getEntityClass() {
+        return Notification.class;
+    }
+
+    @Override
+    protected Function<Notification, NotificationDTO> toDtoMapper() {
+        return notificationMapper::toDto;
     }
 
     @GetMapping("")

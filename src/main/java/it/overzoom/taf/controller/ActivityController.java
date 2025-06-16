@@ -2,6 +2,7 @@ package it.overzoom.taf.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
@@ -28,15 +29,32 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/activities")
-public class ActivityController {
+public class ActivityController extends BaseSearchController<Activity, ActivityDTO> {
 
     private static final Logger log = LoggerFactory.getLogger(ActivityController.class);
     private final ActivityService activityService;
     private final ActivityMapper activityMapper;
 
-    public ActivityController(ActivityService activityService, ActivityMapper activityMapper) {
+    public ActivityController(
+            ActivityService activityService,
+            ActivityMapper activityMapper) {
         this.activityService = activityService;
         this.activityMapper = activityMapper;
+    }
+
+    @Override
+    protected String getCollectionName() {
+        return "activity";
+    }
+
+    @Override
+    protected Class<Activity> getEntityClass() {
+        return Activity.class;
+    }
+
+    @Override
+    protected Function<Activity, ActivityDTO> toDtoMapper() {
+        return activityMapper::toDto;
     }
 
     @GetMapping("")
