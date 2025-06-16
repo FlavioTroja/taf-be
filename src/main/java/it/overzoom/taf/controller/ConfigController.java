@@ -2,7 +2,10 @@ package it.overzoom.taf.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
@@ -60,17 +63,29 @@ public class ConfigController {
     }
 
     @GetMapping("/own")
-    public ResponseEntity<List<ConfigDTO>> findOwn() throws ResourceNotFoundException {
-        log.info("REST request to get own Configs");
-        User currentUser = userService.getProfile();
+    public ResponseEntity<Map<String, Map<String, List<String>>>> getHiddenComponentsForUser()
+            throws ResourceNotFoundException {
+        log.info("REST request to get structured hidden configs for current user");
 
+        User currentUser = userService.getProfile();
         List<Config> configs = configService.findByRoles(currentUser.getRoles());
 
-        if (configs.isEmpty()) {
-            throw new ResourceNotFoundException("Nessuna configurazione trovata per i ruoli dell’utente.");
+        Map<String, Map<String, List<String>>> result = new HashMap<>();
+
+        for (Config config : configs) {
+            if (Boolean.TRUE.equals(config.getIsActive())
+                    && config.getContext() != null
+                    && config.getSection() != null
+                    && config.getComponent() != null) {
+
+                result
+                        .computeIfAbsent(config.getContext(), ctx -> new HashMap<>())
+                        .computeIfAbsent(config.getSection(), sec -> new ArrayList<>())
+                        .add(config.getComponent());
+            }
         }
 
-        return ResponseEntity.ok(configs.stream().map(configMapper::toDto).toList());
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/create")
