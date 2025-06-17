@@ -30,7 +30,7 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/taf-be:latest
 
   deploy:
-    name: SSH deploy to production (2 servers)
+    name: SSH deploy to production server
     needs: build-and-push
     runs-on: ubuntu-latest
 
