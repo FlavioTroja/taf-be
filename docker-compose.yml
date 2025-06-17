@@ -1,7 +1,7 @@
 services:
-  taf:
-    image: overzoom/taf:latest
-    container_name: taf
+  taf-be:
+    image: overzoom/taf-be:latest
+    container_name: taf-be
     mem_limit: 512m
     mem_reservation: 256m
     ports:

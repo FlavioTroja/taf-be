@@ -1,0 +1,61 @@
+server:
+    port: 8080
+
+spring:
+    application:
+        name: taf
+    data:
+        mongodb:
+            uri: mongodb+srv://${SPRING_DATA_MONGODB_USERNAME_PROD}:${SPRING_DATA_MONGODB_PASSWORD_PROD}@${SPRING_DATA_MONGODB_HOST_PROD}/?retryWrites=true&w=majority&appName=${SPRING_DATA_MONGODB_DATABASE_PROD}
+            auto-index-creation: true
+    servlet:
+        multipart:
+            max-file-size: 2MB
+            max-request-size: 2MB  
+    security:
+        oauth2:
+            client:
+                registration:
+                    cognito:
+                        client-id: ${COGNITO_CLIENT_ID}
+                        client-secret: ${COGNITO_CLIENT_SECRET}
+                        scope:
+                        - email
+                        - openid
+                        - profile
+                        redirect-uri: http://localhost:4200/login/oauth2/code/cognito
+                provider:
+                    cognito:
+                        issuerUri: https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_ezfmvZVI2
+                        user-name-attribute: username
+            resourceserver:
+                jwt:
+                    issuer-uri: https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_bSXSXHEow            
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+    org.springframework.data.mongodb.core.MongoDatabaseFactory: DEBUG
+    org.springframework.data.mongodb.core.MongoCollectionUtils: DEBUG
+    org.springframework.data.mongodb.core.mapping.MongoMappingContext: DEBUG
+
+cognito:
+  region: eu-central-1        
+  user-pool-id: eu-central-1_ezfmvZVI2
+  user-pool-client-id: ${COGNITO_CLIENT_ID}
+  user-pool-client-secret: ${COGNITO_CLIENT_SECRET}     
+
+springdoc:
+    api-docs:
+        path: /api-docs
+    swagger-ui:
+        path: /swagger-ui.html  
+        operationsSorter: method        
+
+openapi:
+    service:
+        title: TAF+ API v3 Doc
+        version: 1.0.0
+        url: ${OPENAPI_URL:http://localhost:8080/v3/api-docs}             
