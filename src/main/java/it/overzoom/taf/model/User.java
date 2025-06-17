@@ -20,8 +20,6 @@ public class User {
 
     private String surname;
 
-    private String email;
-
     private LocalDate birthDate;
 
     private Binary photo;
@@ -82,14 +80,6 @@ public class User {
 
     public void setPhoto(Binary photo) {
         this.photo = photo;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
 }

@@ -136,7 +136,6 @@ public class AuthController {
 
             User user = new User();
             user.setUserId(userSub);
-            user.setEmail(req.email);
             user.setName(req.name);
             user.setSurname(req.surname);
             user.setRoles(new String[] { "ROLE_USER" });
