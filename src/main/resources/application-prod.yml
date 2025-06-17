@@ -6,7 +6,12 @@ spring:
         name: taf
     data:
         mongodb:
-            uri: mongodb+srv://${SPRING_DATA_MONGODB_USERNAME_PROD}:${SPRING_DATA_MONGODB_PASSWORD_PROD}@${SPRING_DATA_MONGODB_HOST_PROD}/?retryWrites=true&w=majority&appName=${SPRING_DATA_MONGODB_DATABASE_PROD}
+            authentication-database: admin
+            database: ${SPRING_DATA_MONGODB_DATABASE:tafdb}
+            host: ${SPRING_DATA_MONGODB_HOST:localhost}
+            password: ${SPRING_DATA_MONGODB_PASSWORD:secr3t}
+            port: ${SPRING_DATA_MONGODB_PORT:7481}
+            username: ${SPRING_DATA_MONGODB_USERNAME:admin}
             auto-index-creation: true
     servlet:
         multipart:
@@ -34,12 +39,12 @@ spring:
 
 logging:
   level:
-    org.springframework.web: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
-    org.springframework.data.mongodb.core.MongoDatabaseFactory: DEBUG
-    org.springframework.data.mongodb.core.MongoCollectionUtils: DEBUG
-    org.springframework.data.mongodb.core.mapping.MongoMappingContext: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.springframework.data.mongodb.core.MongoTemplate: INFO
+    org.springframework.data.mongodb.core.MongoDatabaseFactory: INFO
+    org.springframework.data.mongodb.core.MongoCollectionUtils: INFO
+    org.springframework.data.mongodb.core.mapping.MongoMappingContext: INFO
 
 cognito:
   region: eu-central-1        
