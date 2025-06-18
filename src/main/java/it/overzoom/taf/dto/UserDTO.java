@@ -14,6 +14,7 @@ public class UserDTO extends BaseDTO {
     private LocalDate birthDate;
     private String photo;
     private String[] roles;
+    private String municipalityId;
 
     public String getUserId() {
         return userId;
@@ -61,5 +62,13 @@ public class UserDTO extends BaseDTO {
 
     public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
+    }
+
+    public String getMunicipalityId() {
+        return municipalityId;
+    }
+
+    public void setMunicipalityId(String municipalityId) {
+        this.municipalityId = municipalityId;
     }
 }
