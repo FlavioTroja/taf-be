@@ -8,6 +8,7 @@ public class Municipal extends BaseEntity {
     private String city;
     private String province;
     private String region;
+    private String domain;
 
     public String getCity() {
         return city;
@@ -31,6 +32,14 @@ public class Municipal extends BaseEntity {
 
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
 }

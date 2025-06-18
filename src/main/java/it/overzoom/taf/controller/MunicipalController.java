@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -115,5 +116,15 @@ public class MunicipalController extends BaseSearchController<Municipal, Municip
                 .orElseThrow(() -> new ResourceNotFoundException("Comune non trovato con questo ID :: " + id));
 
         return ResponseEntity.ok().body(municipalMapper.toDto(updated));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable("id") String id) throws ResourceNotFoundException {
+        log.info("REST request to delete Municipal with ID: {}", id);
+        if (!municipalService.existsById(id)) {
+            throw new ResourceNotFoundException("Comune non trovato.");
+        }
+        municipalService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

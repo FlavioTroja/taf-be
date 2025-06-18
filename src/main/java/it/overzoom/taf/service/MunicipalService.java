@@ -20,4 +20,8 @@ public interface MunicipalService {
     Optional<Municipal> update(Municipal municipal);
 
     Optional<Municipal> partialUpdate(String id, Municipal municipal);
+
+    Optional<Municipal> findByDomain(String domain);
+
+    void deleteById(String id);
 }

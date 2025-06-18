@@ -43,6 +43,7 @@ public class MunicipalServiceImpl implements MunicipalService {
             existing.setCity(municipal.getCity());
             existing.setProvince(municipal.getProvince());
             existing.setRegion(municipal.getRegion());
+            existing.setDomain(municipal.getDomain());
             return existing;
         }).map(municipalRepository::save);
     }
@@ -59,7 +60,21 @@ public class MunicipalServiceImpl implements MunicipalService {
             if (municipal.getRegion() != null) {
                 existing.setRegion(municipal.getRegion());
             }
-            return existing;
-        }).map(municipalRepository::save);
+            if (municipal.getDomain() != null) {
+                existing.setDomain(municipal.getDomain());
+            }
+            // Utilizzare save per aggiornare il documento esistente
+            return municipalRepository.save(existing);
+        });
+    }
+
+    // delete
+    @Transactional
+    public void deleteById(String id) {
+        municipalRepository.deleteById(id);
+    }
+
+    public Optional<Municipal> findByDomain(String domain) {
+        return municipalRepository.findByDomain(domain);
     }
 }
