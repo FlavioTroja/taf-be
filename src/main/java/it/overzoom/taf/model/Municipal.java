@@ -1,5 +1,6 @@
 package it.overzoom.taf.model;
 
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "municipal")
@@ -8,6 +9,7 @@ public class Municipal extends BaseEntity {
     private String city;
     private String province;
     private String region;
+    @Indexed
     private String domain;
 
     public String getCity() {
