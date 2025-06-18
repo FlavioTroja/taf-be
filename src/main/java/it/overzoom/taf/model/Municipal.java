@@ -11,6 +11,9 @@ public class Municipal extends BaseEntity {
     private String region;
     @Indexed
     private String domain;
+    private String description;
+    private String cover;
+    private String logo;
 
     public String getCity() {
         return city;
@@ -42,6 +45,30 @@ public class Municipal extends BaseEntity {
 
     public void setDomain(String domain) {
         this.domain = domain;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getCover() {
+        return cover;
+    }
+
+    public void setCover(String cover) {
+        this.cover = cover;
+    }
+
+    public String getLogo() {
+        return logo;
+    }
+
+    public void setLogo(String logo) {
+        this.logo = logo;
     }
 
 }

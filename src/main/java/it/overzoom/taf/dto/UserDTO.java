@@ -11,7 +11,6 @@ public class UserDTO extends BaseDTO {
     private String name;
     @NotNull
     private String surname;
-    private String email;
     private LocalDate birthDate;
     private String photo;
     private String[] roles;
@@ -62,13 +61,5 @@ public class UserDTO extends BaseDTO {
 
     public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 }

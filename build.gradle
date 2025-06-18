@@ -39,6 +39,9 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.6'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
 
+	// Image processing
+	implementation 'commons-io:commons-io:2.11.0'
+
 	// Solo in dev
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 

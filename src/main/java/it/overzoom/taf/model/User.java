@@ -2,9 +2,9 @@ package it.overzoom.taf.model;
 
 import java.time.LocalDate;
 
-import org.bson.types.Binary;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 @Document(collection = "user")
 public class User extends BaseEntity {
@@ -18,9 +18,13 @@ public class User extends BaseEntity {
 
     private LocalDate birthDate;
 
-    private Binary photo;
+    @Field("photo")
+    private String photo;
 
     private String[] roles;
+
+    @Indexed
+    private String municipalityId;
 
     public LocalDate getBirthDate() {
         return birthDate;
@@ -62,12 +66,20 @@ public class User extends BaseEntity {
         this.roles = roles;
     }
 
-    public Binary getPhoto() {
+    public String getPhoto() {
         return photo;
     }
 
-    public void setPhoto(Binary photo) {
+    public void setPhoto(String photo) {
         this.photo = photo;
+    }
+
+    public String getMunicipalityId() {
+        return municipalityId;
+    }
+
+    public void setMunicipalityId(String municipalityId) {
+        this.municipalityId = municipalityId;
     }
 
 }

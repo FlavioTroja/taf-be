@@ -63,9 +63,8 @@ public class MunicipalServiceImpl implements MunicipalService {
             if (municipal.getDomain() != null) {
                 existing.setDomain(municipal.getDomain());
             }
-            // Utilizzare save per aggiornare il documento esistente
-            return municipalRepository.save(existing);
-        });
+            return existing;
+        }).map(municipalRepository::save);
     }
 
     // delete
