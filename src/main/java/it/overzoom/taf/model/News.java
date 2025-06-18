@@ -2,14 +2,12 @@ package it.overzoom.taf.model;
 
 import java.time.LocalDateTime;
 
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "news")
-public class News {
-    @Id
-    private String id;
+public class News extends BaseEntity {
+
     private String title;
     private String content;
     private String author;
@@ -17,14 +15,6 @@ public class News {
     private String[] tags;
     @Indexed
     private String municipalityId;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getTitle() {
         return title;

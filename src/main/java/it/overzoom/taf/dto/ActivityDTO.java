@@ -3,9 +3,8 @@ package it.overzoom.taf.dto;
 import it.overzoom.taf.model.ActivityType;
 import jakarta.validation.constraints.NotNull;
 
-public class ActivityDTO {
+public class ActivityDTO extends BaseDTO {
 
-    private String id;
     @NotNull
     private String name;
     private String address;
@@ -21,14 +20,6 @@ public class ActivityDTO {
     private String[] tags;
     @NotNull
     private String municipalityId;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;

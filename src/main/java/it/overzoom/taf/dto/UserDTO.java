@@ -4,9 +4,8 @@ import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotNull;
 
-public class UserDTO {
+public class UserDTO extends BaseDTO {
 
-    private String id;
     private String userId;
     @NotNull
     private String name;
@@ -16,14 +15,6 @@ public class UserDTO {
     private LocalDate birthDate;
     private String photo;
     private String[] roles;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getUserId() {
         return userId;

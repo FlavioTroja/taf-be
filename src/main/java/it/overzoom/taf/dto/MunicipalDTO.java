@@ -2,29 +2,20 @@ package it.overzoom.taf.dto;
 
 import jakarta.validation.constraints.NotNull;
 
-public class MunicipalDTO {
+public class MunicipalDTO extends BaseDTO {
 
-    private String id;
     @NotNull
-    private String city;
+    private String name;
     @NotNull
     private String province;
     private String region;
 
-    public String getId() {
-        return id;
+    public String getName() {
+        return name;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getProvince() {

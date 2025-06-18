@@ -1,31 +1,20 @@
 package it.overzoom.taf.model;
 
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "municipal")
-public class Municipal {
+public class Municipal extends BaseEntity {
 
-    @Id
-    private String id;
-    private String city;
+    private String name;
     private String province;
     private String region;
 
-    public String getId() {
-        return id;
+    public String getName() {
+        return name;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getProvince() {

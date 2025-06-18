@@ -3,15 +3,11 @@ package it.overzoom.taf.model;
 import java.time.LocalDate;
 
 import org.bson.types.Binary;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "user")
-public class User {
-
-    @Id
-    private String id;
+public class User extends BaseEntity {
 
     @Indexed
     private String userId;
@@ -25,14 +21,6 @@ public class User {
     private Binary photo;
 
     private String[] roles;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public LocalDate getBirthDate() {
         return birthDate;

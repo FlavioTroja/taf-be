@@ -3,14 +3,12 @@ package it.overzoom.taf.model;
 import java.time.LocalDateTime;
 
 import org.bson.types.Binary;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "event")
-public class Event {
-    @Id
-    private String id;
+public class Event extends BaseEntity {
+
     private String title;
     private String description;
     private EventType type;
@@ -31,14 +29,6 @@ public class Event {
     private Boolean isPublic;
     private Boolean isCancelled;
     private String url;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getTitle() {
         return title;
