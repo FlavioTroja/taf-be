@@ -1,14 +1,11 @@
-package it.overzoom.taf.mapper;
+package it.overzoom.taf.model;
 
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "config")
-public class Config {
+public class Config extends BaseEntity {
 
-    @Id
-    private String id;
     @Indexed
     private String municipalityId;
     private String context;
@@ -16,14 +13,6 @@ public class Config {
     private String component;
     private Boolean isActive;
     private String[] roles;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getMunicipalityId() {
         return municipalityId;

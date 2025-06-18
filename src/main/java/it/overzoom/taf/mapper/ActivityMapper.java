@@ -7,11 +7,12 @@ import org.bson.types.Binary;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.mapstruct.ReportingPolicy;
 
 import it.overzoom.taf.dto.ActivityDTO;
 import it.overzoom.taf.model.Activity;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ActivityMapper {
 
     @Mapping(source = "cover", target = "cover", qualifiedByName = "binaryToBase64")

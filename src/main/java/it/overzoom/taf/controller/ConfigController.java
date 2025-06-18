@@ -24,8 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.overzoom.taf.dto.ConfigDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
-import it.overzoom.taf.mapper.Config;
 import it.overzoom.taf.mapper.ConfigMapper;
+import it.overzoom.taf.model.Config;
 import it.overzoom.taf.model.User;
 import it.overzoom.taf.service.ConfigService;
 import it.overzoom.taf.service.UserService;

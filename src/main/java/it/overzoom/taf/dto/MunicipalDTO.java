@@ -5,17 +5,17 @@ import jakarta.validation.constraints.NotNull;
 public class MunicipalDTO extends BaseDTO {
 
     @NotNull
-    private String name;
+    private String city;
     @NotNull
     private String province;
     private String region;
 
-    public String getName() {
-        return name;
+    public String getCity() {
+        return city;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setCity(String city) {
+        this.city = city;
     }
 
     public String getProvince() {

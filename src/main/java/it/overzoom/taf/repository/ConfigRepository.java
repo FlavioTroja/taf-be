@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
-import it.overzoom.taf.mapper.Config;
+import it.overzoom.taf.model.Config;
 
 @Repository
 public interface ConfigRepository extends MongoRepository<Config, String> {
