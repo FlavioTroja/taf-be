@@ -71,7 +71,7 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Event> create(@Valid @RequestBody EventDTO eventDTO)
+    public ResponseEntity<EventDTO> create(@Valid @RequestBody EventDTO eventDTO)
             throws BadRequestException, URISyntaxException {
         log.info("REST request to save Event : {}", eventDTO);
         if (eventDTO.getId() != null) {
@@ -79,7 +79,7 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
         }
         Event event = eventMapper.toEntity(eventDTO);
         event = eventService.create(event);
-        return ResponseEntity.created(new URI("/api/events/" + event.getId())).body(event);
+        return ResponseEntity.created(new URI("/api/events/" + event.getId())).body(eventMapper.toDto(event));
     }
 
     @PutMapping("")

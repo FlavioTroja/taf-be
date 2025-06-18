@@ -82,7 +82,7 @@ public class UserController extends BaseSearchController<User, UserDTO> {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<User> create(@Valid @RequestBody UserDTO userDTO)
+    public ResponseEntity<UserDTO> create(@Valid @RequestBody UserDTO userDTO)
             throws BadRequestException, URISyntaxException {
         log.info("REST request to save User : " + userDTO.toString());
         if (userDTO.getId() != null) {
@@ -90,7 +90,7 @@ public class UserController extends BaseSearchController<User, UserDTO> {
         }
         User user = userMapper.toEntity(userDTO);
         user = userService.create(user);
-        return ResponseEntity.created(new URI("/api/users/" + userDTO.getId())).body(user);
+        return ResponseEntity.created(new URI("/api/users/" + user.getId())).body(userMapper.toDto(user));
     }
 
     @PutMapping("")

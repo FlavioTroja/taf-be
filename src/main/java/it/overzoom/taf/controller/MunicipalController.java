@@ -71,7 +71,7 @@ public class MunicipalController extends BaseSearchController<Municipal, Municip
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Municipal> create(@Valid @RequestBody MunicipalDTO municipalDTO)
+    public ResponseEntity<MunicipalDTO> create(@Valid @RequestBody MunicipalDTO municipalDTO)
             throws BadRequestException, URISyntaxException {
         log.info("REST request to save Municipal : {}", municipalDTO);
         if (municipalDTO.getId() != null) {
@@ -79,7 +79,8 @@ public class MunicipalController extends BaseSearchController<Municipal, Municip
         }
         Municipal municipal = municipalMapper.toEntity(municipalDTO);
         municipal = municipalService.create(municipal);
-        return ResponseEntity.created(new URI("/api/municipals/" + municipal.getId())).body(municipal);
+        return ResponseEntity.created(new URI("/api/municipals/" + municipal.getId()))
+                .body(municipalMapper.toDto(municipal));
     }
 
     @PutMapping("")
