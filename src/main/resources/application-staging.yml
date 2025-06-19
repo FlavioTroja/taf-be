@@ -40,12 +40,12 @@ spring:
 
 logging:
   level:
-    org.springframework.web: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
-    org.springframework.data.mongodb.core.MongoDatabaseFactory: DEBUG
-    org.springframework.data.mongodb.core.MongoCollectionUtils: DEBUG
-    org.springframework.data.mongodb.core.mapping.MongoMappingContext: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.springframework.data.mongodb.core.MongoTemplate: INFO
+    org.springframework.data.mongodb.core.MongoDatabaseFactory: INFO
+    org.springframework.data.mongodb.core.MongoCollectionUtils: INFO
+    org.springframework.data.mongodb.core.mapping.MongoMappingContext: INFO
 
 cognito:
   region: eu-central-1        
