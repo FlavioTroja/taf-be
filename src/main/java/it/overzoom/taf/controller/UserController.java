@@ -3,9 +3,6 @@ package it.overzoom.taf.controller;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
@@ -14,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -69,14 +67,15 @@ public class UserController extends BaseSearchController<User, UserDTO> {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> findById(@PathVariable("id") String userId)
+    public ResponseEntity<UserDTO> findById(@PathVariable("id") String id)
             throws ResourceNotFoundException, BadRequestException {
 
-        if (!userService.hasAccess(userId)) {
-            throw new BadRequestException("Non hai i permessi per accedere a questo utente.");
-        }
+        // if (!userService.hasAccess(id)) {
+        // throw new BadRequestException("Non hai i permessi per accedere a questo
+        // utente.");
+        // }
 
-        return userService.findById(userId).map(userMapper::toDto)
+        return userService.findById(id).map(userMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato."));
     }
@@ -131,42 +130,23 @@ public class UserController extends BaseSearchController<User, UserDTO> {
     @PostMapping("/{id}/upload-photo")
     public ResponseEntity<UserDTO> uploadUserPhoto(@PathVariable("id") String id,
             @RequestParam("file") MultipartFile file) throws ResourceNotFoundException, IOException {
-        User user = userService.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID :: " + id));
 
-        // Verifica se il file è vuoto
         if (file.isEmpty()) {
-            throw new RuntimeException("Nessun file caricato");
+            throw new BadRequestException("Nessun file caricato.");
         }
 
-        // Estrai l'estensione del file
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || !originalFilename.contains(".")) {
-            throw new RuntimeException("Nome file non valido o mancante estensione");
+        User user = userService.uploadPhoto(id, file);
+        return ResponseEntity.ok(userMapper.toDto(user));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable("id") String id) throws ResourceNotFoundException {
+        log.info("REST request to delete User with ID: {}", id);
+        if (!userService.existsById(id)) {
+            throw new ResourceNotFoundException("Utente non trovato.");
         }
-        String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1);
-
-        // Crea il nome del file con timestamp
-        String fileName = System.currentTimeMillis() + "." + extension;
-
-        // Definisci la cartella di destinazione
-        Path path = Paths.get("uploads/photos", fileName);
-
-        try {
-            // Salva il file fisicamente nella cartella
-            Files.createDirectories(path.getParent()); // Assicurati che la cartella esista
-            file.transferTo(path.toFile());
-
-            // Salva solo il nome del file nel database
-            user.setPhoto(fileName);
-            userService.create(user);
-
-            // Restituisci il DTO dell'utente
-            return ResponseEntity.ok(userMapper.toDto(user));
-
-        } catch (IOException e) {
-            throw new RuntimeException("Errore durante il caricamento del file", e);
-        }
+        userService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
 }
