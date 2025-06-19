@@ -3,7 +3,7 @@ server:
 
 spring:
     profiles:
-        active: prod
+        active: ${SPRING_PROFILES_ACTIVE:staging}
     application:
         name: taf
     data:
