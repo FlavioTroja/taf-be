@@ -50,7 +50,6 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /home/manager/orchestrator/taf
-            # Determina se siamo su staging o produzione
             if [ "${GITHUB_REF}" == "refs/heads/develop" ]; then
               IMAGE_TAG="staging"
               SERVICE="taf-be-staging"
@@ -61,11 +60,8 @@ jobs:
               PROFILE="production"
             fi
 
-            # Passa il profilo come variabile d'ambiente per Docker
             export SPRING_PROFILES_ACTIVE=$PROFILE
 
-            # Assicurati che l'immagine sia aggiornata
             docker compose pull $SERVICE
 
-            # Ricrea solo il servizio taf-be in background
             docker compose up -d $SERVICE
