@@ -1,3 +1,6 @@
 spring:
   profiles:
     active: dev
+
+file-upload:
+    path: ${FILE_STORAGE_PATH:/tmp/taf-files}    

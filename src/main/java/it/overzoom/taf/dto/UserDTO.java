@@ -4,26 +4,17 @@ import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotNull;
 
-public class UserDTO {
+public class UserDTO extends BaseDTO {
 
-    private String id;
     private String userId;
     @NotNull
     private String name;
     @NotNull
     private String surname;
-    private String email;
     private LocalDate birthDate;
     private String photo;
     private String[] roles;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
+    private String municipalityId;
 
     public String getUserId() {
         return userId;
@@ -73,11 +64,11 @@ public class UserDTO {
         this.birthDate = birthDate;
     }
 
-    public String getEmail() {
-        return email;
+    public String getMunicipalityId() {
+        return municipalityId;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setMunicipalityId(String municipalityId) {
+        this.municipalityId = municipalityId;
     }
 }

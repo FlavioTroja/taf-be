@@ -5,8 +5,7 @@ import java.time.LocalDateTime;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public class NewsDTO {
-    private String id;
+public class NewsDTO extends BaseDTO {
     @NotNull
     private String title;
     @NotBlank
@@ -16,14 +15,6 @@ public class NewsDTO {
     private String[] tags;
     @NotNull
     private String municipalityId;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getTitle() {
         return title;

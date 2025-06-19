@@ -2,22 +2,14 @@ package it.overzoom.taf.dto;
 
 import jakarta.validation.constraints.NotNull;
 
-public class MunicipalDTO {
+public class MunicipalDTO extends BaseDTO {
 
-    private String id;
     @NotNull
     private String city;
     @NotNull
     private String province;
     private String region;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
+    private String domain;
 
     public String getCity() {
         return city;
@@ -41,5 +33,13 @@ public class MunicipalDTO {
 
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 }

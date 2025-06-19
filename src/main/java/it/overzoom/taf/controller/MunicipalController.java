@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -70,7 +71,7 @@ public class MunicipalController extends BaseSearchController<Municipal, Municip
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Municipal> create(@Valid @RequestBody MunicipalDTO municipalDTO)
+    public ResponseEntity<MunicipalDTO> create(@Valid @RequestBody MunicipalDTO municipalDTO)
             throws BadRequestException, URISyntaxException {
         log.info("REST request to save Municipal : {}", municipalDTO);
         if (municipalDTO.getId() != null) {
@@ -78,7 +79,8 @@ public class MunicipalController extends BaseSearchController<Municipal, Municip
         }
         Municipal municipal = municipalMapper.toEntity(municipalDTO);
         municipal = municipalService.create(municipal);
-        return ResponseEntity.created(new URI("/api/municipals/" + municipal.getId())).body(municipal);
+        return ResponseEntity.created(new URI("/api/municipals/" + municipal.getId()))
+                .body(municipalMapper.toDto(municipal));
     }
 
     @PutMapping("")
@@ -115,5 +117,15 @@ public class MunicipalController extends BaseSearchController<Municipal, Municip
                 .orElseThrow(() -> new ResourceNotFoundException("Comune non trovato con questo ID :: " + id));
 
         return ResponseEntity.ok().body(municipalMapper.toDto(updated));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable("id") String id) throws ResourceNotFoundException {
+        log.info("REST request to delete Municipal with ID: {}", id);
+        if (!municipalService.existsById(id)) {
+            throw new ResourceNotFoundException("Comune non trovato.");
+        }
+        municipalService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

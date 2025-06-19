@@ -6,12 +6,12 @@ import java.net.URISyntaxException;
 import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
-import org.bson.types.Binary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -67,20 +67,21 @@ public class UserController extends BaseSearchController<User, UserDTO> {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> findById(@PathVariable("id") String userId)
+    public ResponseEntity<UserDTO> findById(@PathVariable("id") String id)
             throws ResourceNotFoundException, BadRequestException {
 
-        if (!userService.hasAccess(userId)) {
-            throw new BadRequestException("Non hai i permessi per accedere a questo utente.");
-        }
+        // if (!userService.hasAccess(id)) {
+        // throw new BadRequestException("Non hai i permessi per accedere a questo
+        // utente.");
+        // }
 
-        return userService.findById(userId).map(userMapper::toDto)
+        return userService.findById(id).map(userMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato."));
     }
 
     @PostMapping("/create")
-    public ResponseEntity<User> create(@Valid @RequestBody UserDTO userDTO)
+    public ResponseEntity<UserDTO> create(@Valid @RequestBody UserDTO userDTO)
             throws BadRequestException, URISyntaxException {
         log.info("REST request to save User : " + userDTO.toString());
         if (userDTO.getId() != null) {
@@ -88,7 +89,7 @@ public class UserController extends BaseSearchController<User, UserDTO> {
         }
         User user = userMapper.toEntity(userDTO);
         user = userService.create(user);
-        return ResponseEntity.created(new URI("/api/users/" + userDTO.getId())).body(user);
+        return ResponseEntity.created(new URI("/api/users/" + user.getId())).body(userMapper.toDto(user));
     }
 
     @PutMapping("")
@@ -129,20 +130,23 @@ public class UserController extends BaseSearchController<User, UserDTO> {
     @PostMapping("/{id}/upload-photo")
     public ResponseEntity<UserDTO> uploadUserPhoto(@PathVariable("id") String id,
             @RequestParam("file") MultipartFile file) throws ResourceNotFoundException, IOException {
-        User user = userService.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID :: " + id));
-        try {
 
-            Binary photoBinary = new Binary(file.getBytes());
-
-            user.setPhoto(photoBinary);
-            userService.create(user);
-
-            return ResponseEntity.ok(userMapper.toDto(user));
-
-        } catch (IOException e) {
-            throw new RuntimeException("Errore durante il caricamento del file", e);
+        if (file.isEmpty()) {
+            throw new BadRequestException("Nessun file caricato.");
         }
+
+        User user = userService.uploadPhoto(id, file);
+        return ResponseEntity.ok(userMapper.toDto(user));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable("id") String id) throws ResourceNotFoundException {
+        log.info("REST request to delete User with ID: {}", id);
+        if (!userService.existsById(id)) {
+            throw new ResourceNotFoundException("Utente non trovato.");
+        }
+        userService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

@@ -1,13 +1,10 @@
 package it.overzoom.taf.model;
 
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "notification")
-public class Notification {
-    @Id
-    private String id;
+public class Notification extends BaseEntity {
     private String message;
     private String recipientId; // ID of the user or group receiving the notification
     private String senderId; // ID of the user sending the notification
@@ -15,14 +12,6 @@ public class Notification {
     private long timestamp; // Time when the notification was created
     @Indexed
     private String municipalityId; // ID of the municipality associated with the notification
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getMessage() {
         return message;

@@ -73,7 +73,7 @@ public class ActivityController extends BaseSearchController<Activity, ActivityD
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Activity> create(@Valid @RequestBody ActivityDTO activityDTO)
+    public ResponseEntity<ActivityDTO> create(@Valid @RequestBody ActivityDTO activityDTO)
             throws BadRequestException, URISyntaxException {
         log.info("REST request to save Activity : {}", activityDTO);
         if (activityDTO.getId() != null) {
@@ -81,7 +81,8 @@ public class ActivityController extends BaseSearchController<Activity, ActivityD
         }
         Activity activity = activityMapper.toEntity(activityDTO);
         activity = activityService.create(activity);
-        return ResponseEntity.created(new URI("/api/activities/" + activity.getId())).body(activity);
+        return ResponseEntity.created(new URI("/api/activities/" + activity.getId()))
+                .body(activityMapper.toDto(activity));
     }
 
     @PutMapping("")

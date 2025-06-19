@@ -1,24 +1,19 @@
 package it.overzoom.taf.model;
 
-import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "municipal")
-public class Municipal {
+public class Municipal extends BaseEntity {
 
-    @Id
-    private String id;
     private String city;
     private String province;
     private String region;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
+    @Indexed
+    private String domain;
+    private String description;
+    private String cover;
+    private String logo;
 
     public String getCity() {
         return city;
@@ -42,6 +37,38 @@ public class Municipal {
 
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getCover() {
+        return cover;
+    }
+
+    public void setCover(String cover) {
+        this.cover = cover;
+    }
+
+    public String getLogo() {
+        return logo;
+    }
+
+    public void setLogo(String logo) {
+        this.logo = logo;
     }
 
 }

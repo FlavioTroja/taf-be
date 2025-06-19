@@ -2,8 +2,7 @@ package it.overzoom.taf.dto;
 
 import jakarta.validation.constraints.NotNull;
 
-public class ConfigDTO {
-    private String id;
+public class ConfigDTO extends BaseDTO {
     @NotNull
     private String municipalityId;
     private String context;
@@ -11,14 +10,6 @@ public class ConfigDTO {
     private String component;
     private Boolean isActive = true;
     private String[] roles;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getMunicipalityId() {
         return municipalityId;

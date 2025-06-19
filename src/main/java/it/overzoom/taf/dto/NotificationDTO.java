@@ -4,8 +4,7 @@ import java.time.LocalDateTime;
 
 import jakarta.validation.constraints.NotNull;
 
-public class NotificationDTO {
-    private String id;
+public class NotificationDTO extends BaseDTO {
     @NotNull
     private String message;
     @NotNull
@@ -15,15 +14,6 @@ public class NotificationDTO {
     private long timestamp = LocalDateTime.now().toEpochSecond(java.time.ZoneOffset.UTC);
     @NotNull
     private String municipalityId;
-
-    // Getters e Setters
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getMessage() {
         return message;

@@ -13,4 +13,6 @@ public interface MunicipalRepository extends MongoRepository<Municipal, String> 
     Optional<Municipal> findByCityAndProvinceAndRegion(String city, String province, String region);
 
     Optional<Municipal> findByCityAndProvince(String city, String province);
+
+    Optional<Municipal> findByDomain(String domain);
 }

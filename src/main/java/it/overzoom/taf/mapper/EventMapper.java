@@ -7,11 +7,12 @@ import org.bson.types.Binary;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.mapstruct.ReportingPolicy;
 
 import it.overzoom.taf.dto.EventDTO;
 import it.overzoom.taf.model.Event;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface EventMapper {
 
     @Mapping(source = "photos", target = "photos", qualifiedByName = "binaryArrayToBase64Array")

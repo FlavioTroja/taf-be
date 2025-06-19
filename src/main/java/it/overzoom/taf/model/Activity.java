@@ -1,15 +1,12 @@
 package it.overzoom.taf.model;
 
 import org.bson.types.Binary;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "activity")
-public class Activity {
+public class Activity extends BaseEntity {
 
-    @Id
-    private String id;
     private String name;
     private String address;
     private String phone;
@@ -31,14 +28,6 @@ public class Activity {
 
     public void setMunicipalityId(String municipalityId) {
         this.municipalityId = municipalityId;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getName() {
