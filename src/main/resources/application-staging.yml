@@ -2,6 +2,8 @@ server:
     port: 8080
 
 spring:
+    profiles:
+        active: staging
     application:
         name: taf
     data:
@@ -65,3 +67,6 @@ openapi:
         title: "TAF Staging API"
         version: 1.0.0
         url: ${OPENAPI_URL:http://localhost:8080/v3/api-docs}             
+
+file-upload:
+    path: ${FILE_STORAGE_PATH:/tmp/taf-files}            
