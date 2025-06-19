@@ -62,6 +62,6 @@ springdoc:
 
 openapi:
     service:
-        title: TAF+ API v3 Doc
+        title: "TAF Staging API"
         version: 1.0.0
         url: ${OPENAPI_URL:http://localhost:8080/v3/api-docs}             
