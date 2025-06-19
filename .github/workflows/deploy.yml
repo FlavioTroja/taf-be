@@ -1,4 +1,3 @@
-# .github/workflows/deploy.yml
 name: Build & Deploy Spring-Boot Container
 
 on:
@@ -32,7 +31,7 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/taf-be:${{ github.ref == 'refs/heads/develop' && 'staging' || 'latest' }}
 
   deploy:
-    name: SSH deploy to production server
+    name: SSH deploy to server
     needs: build-and-push
     runs-on: ubuntu-latest
 
@@ -40,7 +39,7 @@ jobs:
       - name: Checkout repository (for consistency)
         uses: actions/checkout@v4
 
-      # ===== Deploy su primo server =====
+      # ===== Deploy on Server =====
       - name: Deploy on Server TAF-BE
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -50,9 +49,17 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /home/manager/orchestrator/taf
+            # Determine if we are deploying to production or staging
+            if [ "${GITHUB_REF}" == "refs/heads/develop" ]; then
+              IMAGE_TAG="staging"
+              SERVICE="taf-be-staging"
+            else
+              IMAGE_TAG="latest"
+              SERVICE="taf-be"
+            fi
 
-            # Assicurati che l'immagine sia aggiornata
-            docker compose pull taf-be
+            # Update Docker image
+            docker compose pull $SERVICE
 
-            # Ricrea solo il servizio taf in background
-            docker compose up -d taf-be
+            # Recreate only the appropriate service
+            docker compose up -d $SERVICE
