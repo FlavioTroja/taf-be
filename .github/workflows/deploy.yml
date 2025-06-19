@@ -29,8 +29,6 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/taf-be:${{ github.ref == 'refs/heads/develop' && 'staging' || 'latest' }}
-          build-args: |
-            SPRING_PROFILES_ACTIVE=${{ github.ref == 'refs/heads/develop' && 'staging' || 'production' }}
 
   deploy:
     name: SSH deploy to server
@@ -41,6 +39,7 @@ jobs:
       - name: Checkout repository (for consistency)
         uses: actions/checkout@v4
 
+      # ===== Deploy on Server =====
       - name: Deploy on Server TAF-BE
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -50,18 +49,17 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /home/manager/orchestrator/taf
+            # Determine if we are deploying to production or staging
             if [ "${GITHUB_REF}" == "refs/heads/develop" ]; then
               IMAGE_TAG="staging"
               SERVICE="taf-be-staging"
-              PROFILE="staging"
             else
               IMAGE_TAG="latest"
               SERVICE="taf-be"
-              PROFILE="production"
             fi
 
-            export SPRING_PROFILES_ACTIVE=$PROFILE
-
+            # Update Docker image
             docker compose pull $SERVICE
 
+            # Recreate only the appropriate service
             docker compose up -d $SERVICE

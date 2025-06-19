@@ -23,8 +23,5 @@ COPY --from=builder /app/build/libs/*.jar app.jar
 # Porta Spring configurata (server.port: 8080)
 EXPOSE 8080
 
-# Imposta la variabile d'ambiente per il profilo Spring
-ENV SPRING_PROFILES_ACTIVE=production
-
-# Avvia l’app con il profilo specificato
-ENTRYPOINT ["java","-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}", "-jar", "app.jar"]
+# Avvia l’app
+ENTRYPOINT ["java","-jar","app.jar"]
