@@ -49,6 +49,9 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /home/manager/orchestrator/taf
+            # Debug: echo the value of GITHUB_REF_NAME
+            echo "GITHUB_REF_NAME: $GITHUB_REF_NAME"
+            
             # Determine if we are deploying to production or staging
             if [ "${GITHUB_REF_NAME}" == "develop" ]; then
               IMAGE_TAG="staging"
