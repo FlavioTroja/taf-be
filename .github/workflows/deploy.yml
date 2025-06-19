@@ -57,6 +57,9 @@ jobs:
               IMAGE_TAG="latest"
               SERVICE="taf-be"
             fi
+            echo "Deploying with image tag: $IMAGE_TAG"
+            echo "Using service: $SERVICE"
+            
 
             # Update Docker image
             docker compose pull $SERVICE
