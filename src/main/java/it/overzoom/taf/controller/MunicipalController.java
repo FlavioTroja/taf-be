@@ -2,6 +2,7 @@ package it.overzoom.taf.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
@@ -53,6 +54,11 @@ public class MunicipalController extends BaseSearchController<Municipal, Municip
     @Override
     protected Function<Municipal, MunicipalDTO> toDtoMapper() {
         return municipalMapper::toDto;
+    }
+
+    @Override
+    protected List<String> getSearchableFields() {
+        return List.of("city", "province", "region", "domain");
     }
 
     @GetMapping("")

@@ -61,6 +61,11 @@ public class ConfigController extends BaseSearchController<Config, ConfigDTO> {
         return configMapper::toDto;
     }
 
+    @Override
+    protected List<String> getSearchableFields() {
+        return List.of("context", "section", "component", "municipalityId");
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ConfigDTO> findById(@PathVariable("id") String id) throws ResourceNotFoundException {
         return configService.findById(id)

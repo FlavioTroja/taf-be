@@ -12,7 +12,6 @@ public class ActivityDTO extends BaseDTO {
     private String[] photos; // base64
     private String cover; // base64
     private String logo; // base64
-    private String email;
     private String[] openingHours;
     private String website;
     private String description;
@@ -67,14 +66,6 @@ public class ActivityDTO extends BaseDTO {
 
     public void setLogo(String logo) {
         this.logo = logo;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String[] getOpeningHours() {
