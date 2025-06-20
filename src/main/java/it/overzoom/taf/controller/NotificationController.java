@@ -63,6 +63,11 @@ public class NotificationController extends BaseSearchController<Notification, N
         return notificationMapper::toDto;
     }
 
+    @Override
+    protected java.util.List<String> getSearchableFields() {
+        return java.util.List.of("message", "senderId", "receiverId", "municipalityId");
+    }
+
     @GetMapping("")
     public ResponseEntity<Page<NotificationDTO>> findAll(Pageable pageable) {
         log.info("REST request to get a page of Notifications");

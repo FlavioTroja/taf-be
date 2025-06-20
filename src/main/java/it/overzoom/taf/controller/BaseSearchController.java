@@ -30,6 +30,10 @@ public abstract class BaseSearchController<T, DTO> {
 
     protected abstract Function<T, DTO> toDtoMapper();
 
+    protected List<String> getSearchableFields() {
+        return List.of();
+    }
+
     @PostMapping("/search")
     public ResponseEntity<Page<DTO>> search(@RequestBody Map<String, Object> request) {
         int page = (int) request.getOrDefault("page", 0);
@@ -38,19 +42,43 @@ public abstract class BaseSearchController<T, DTO> {
         Map<String, String> filters = extractMap(request.get("filters"));
         Map<String, String> sortMap = extractMap(request.get("sort"));
 
-        Criteria criteria = new Criteria();
+        // Lista di criteri (AND)
+        List<Criteria> andCriteria = new java.util.ArrayList<>();
+
+        // Applica filtri normali (e &&)
         filters.forEach((key, value) -> {
             if (value != null && !value.isEmpty()) {
-                criteria.and(key).regex(Pattern.compile(Pattern.quote(value), Pattern.CASE_INSENSITIVE));
+                andCriteria.add(
+                        Criteria.where(key).regex(Pattern.compile(Pattern.quote(value), Pattern.CASE_INSENSITIVE)));
             }
         });
 
+        // --- Logica search full-text (OR tra i campi, AND con i filtri normali) ---
+        String searchText = (String) request.get("search");
+        List<String> searchFields = getSearchableFields();
+        if (searchText != null && !searchText.isEmpty() && !searchFields.isEmpty()) {
+            List<Criteria> orList = searchFields.stream()
+                    .map(field -> Criteria.where(field)
+                            .regex(Pattern.compile(Pattern.quote(searchText), Pattern.CASE_INSENSITIVE)))
+                    .toList();
+            andCriteria.add(new Criteria().orOperator(orList.toArray(new Criteria[0])));
+        }
+
+        Criteria criteria;
+        if (andCriteria.isEmpty()) {
+            criteria = new Criteria();
+        } else if (andCriteria.size() == 1) {
+            criteria = andCriteria.get(0);
+        } else {
+            criteria = new Criteria().andOperator(andCriteria.toArray(new Criteria[0]));
+        }
+
         Query query = new Query(criteria);
+
         Sort sort = buildSort(sortMap);
         if (sort != null) {
             query.with(sort);
         }
-
         Pageable pageable = PageRequest.of(page, limit);
         query.with(pageable);
 

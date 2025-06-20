@@ -1,10 +1,9 @@
-name: Build & Deploy Spring-Boot Container
+name: Build & Deploy Production Spring-Boot Container
 
 on:
   push:
     branches:
       - master
-      - develop
 
 jobs:
   build-and-push:
@@ -28,10 +27,10 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/taf-be:${{ github.ref == 'refs/heads/develop' && 'staging' || 'latest' }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/taf-be:latest
 
   deploy:
-    name: SSH deploy to server
+    name: SSH deploy to production server
     needs: build-and-push
     runs-on: ubuntu-latest
 
@@ -39,8 +38,8 @@ jobs:
       - name: Checkout repository (for consistency)
         uses: actions/checkout@v4
 
-      # ===== Deploy on Server =====
-      - name: Deploy on Server TAF-BE
+      # ===== Deploy on Production Server =====
+      - name: Deploy on Production Server TAF-BE
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -49,17 +48,9 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /home/manager/orchestrator/taf
-            # Determine if we are deploying to production or staging
-            if [ "${GITHUB_REF}" == "refs/heads/develop" ]; then
-              IMAGE_TAG="staging"
-              SERVICE="taf-be-staging"
-            else
-              IMAGE_TAG="latest"
-              SERVICE="taf-be"
-            fi
 
             # Update Docker image
-            docker compose pull $SERVICE
+            docker compose pull taf-be
 
-            # Recreate only the appropriate service
-            docker compose up -d $SERVICE
+            # Recreate only the production service
+            docker compose up -d taf-be

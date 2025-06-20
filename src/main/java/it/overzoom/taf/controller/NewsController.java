@@ -2,6 +2,7 @@ package it.overzoom.taf.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
@@ -53,6 +54,11 @@ public class NewsController extends BaseSearchController<News, NewsDTO> {
     @Override
     protected Function<News, NewsDTO> toDtoMapper() {
         return newsMapper::toDto;
+    }
+
+    @Override
+    protected List<String> getSearchableFields() {
+        return List.of("title", "content", "author", "tags", "municipalityId");
     }
 
     @GetMapping("")
