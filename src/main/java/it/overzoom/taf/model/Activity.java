@@ -1,8 +1,9 @@
 package it.overzoom.taf.model;
 
-import org.bson.types.Binary;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import it.overzoom.taf.type.ActivityType;
 
 @Document(collection = "activity")
 public class Activity extends BaseEntity {
@@ -10,9 +11,9 @@ public class Activity extends BaseEntity {
     private String name;
     private String address;
     private String phone;
-    private Binary[] photos;
-    private Binary cover;
-    private Binary logo;
+    private String[] photos;
+    private String cover;
+    private String logo;
     private String email;
     private String[] openingHours;
     private String website;
@@ -62,27 +63,27 @@ public class Activity extends BaseEntity {
         this.phone = phone;
     }
 
-    public Binary[] getPhotos() {
+    public String[] getPhotos() {
         return photos;
     }
 
-    public void setPhotos(Binary[] photos) {
+    public void setPhotos(String[] photos) {
         this.photos = photos;
     }
 
-    public Binary getCover() {
+    public String getCover() {
         return cover;
     }
 
-    public void setCover(Binary cover) {
+    public void setCover(String cover) {
         this.cover = cover;
     }
 
-    public Binary getLogo() {
+    public String getLogo() {
         return logo;
     }
 
-    public void setLogo(Binary logo) {
+    public void setLogo(String logo) {
         this.logo = logo;
     }
 

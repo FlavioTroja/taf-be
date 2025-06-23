@@ -1,4 +1,4 @@
-package it.overzoom.taf.model;
+package it.overzoom.taf.type;
 
 public enum EventType {
     CONCERT,

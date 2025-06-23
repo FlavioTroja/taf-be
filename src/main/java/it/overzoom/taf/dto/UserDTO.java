@@ -12,7 +12,7 @@ public class UserDTO extends BaseDTO {
     @NotNull
     private String surname;
     private LocalDate birthDate;
-    private String photo;
+    private String photo; // path to photo
     private String[] roles;
     private String municipalityId;
 

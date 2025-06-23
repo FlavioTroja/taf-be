@@ -2,7 +2,7 @@ package it.overzoom.taf.dto;
 
 import java.time.LocalDateTime;
 
-import it.overzoom.taf.model.EventType;
+import it.overzoom.taf.type.EventType;
 import jakarta.validation.constraints.NotNull;
 
 public class EventDTO extends BaseDTO {
@@ -15,7 +15,7 @@ public class EventDTO extends BaseDTO {
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
     private String location;
-    private String[] photos; // base64
+    private String[] photos; // path to photos
     private String organizer;
     private String contactEmail;
     private String contactPhone;

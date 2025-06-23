@@ -1,5 +1,6 @@
 package it.overzoom.taf.controller;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -19,7 +20,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import it.overzoom.taf.dto.ActivityDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
@@ -136,4 +139,38 @@ public class ActivityController extends BaseSearchController<Activity, ActivityD
         activityService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/upload-logo")
+    public ResponseEntity<ActivityDTO> uploadLogo(@PathVariable("id") String id,
+            @RequestParam("file") MultipartFile file)
+            throws ResourceNotFoundException, IOException {
+        Activity activity = activityService.uploadLogo(id, file);
+        return ResponseEntity.ok(activityMapper.toDto(activity));
+    }
+
+    @PostMapping("/{id}/upload-cover")
+    public ResponseEntity<ActivityDTO> uploadCover(@PathVariable("id") String id,
+            @RequestParam("file") MultipartFile file)
+            throws ResourceNotFoundException, IOException {
+        Activity activity = activityService.uploadCover(id, file);
+        return ResponseEntity.ok(activityMapper.toDto(activity));
+    }
+
+    @PostMapping("/{id}/upload-gallery")
+    public ResponseEntity<ActivityDTO> uploadGallery(
+            @PathVariable("id") String id,
+            @RequestParam("file") MultipartFile[] file)
+            throws ResourceNotFoundException, IOException {
+        Activity activity = activityService.uploadGallery(id, file);
+        return ResponseEntity.ok(activityMapper.toDto(activity));
+    }
+
+    @DeleteMapping("/{id}/gallery/{photoName}")
+    public ResponseEntity<ActivityDTO> deleteGallery(@PathVariable("id") String id,
+            @PathVariable("photoName") String photoName)
+            throws ResourceNotFoundException, IOException {
+        Activity activity = activityService.deleteGallery(id, photoName);
+        return ResponseEntity.ok(activityMapper.toDto(activity));
+    }
+
 }

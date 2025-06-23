@@ -1,6 +1,6 @@
 package it.overzoom.taf.dto;
 
-import it.overzoom.taf.model.ActivityType;
+import it.overzoom.taf.type.ActivityType;
 import jakarta.validation.constraints.NotNull;
 
 public class ActivityDTO extends BaseDTO {
@@ -9,9 +9,9 @@ public class ActivityDTO extends BaseDTO {
     private String name;
     private String address;
     private String phone;
-    private String[] photos; // base64
-    private String cover; // base64
-    private String logo; // base64
+    private String[] photos; // path to photos
+    private String cover; // path to cover photo
+    private String logo; // path to logo
     private String[] openingHours;
     private String website;
     private String description;
