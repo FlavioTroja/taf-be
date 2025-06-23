@@ -7,9 +7,9 @@ import jakarta.validation.constraints.NotNull;
 public class UserDTO extends BaseDTO {
 
     private String userId;
-    @NotNull
+    @NotNull(message = "Il nome non può essere nullo")
     private String name;
-    @NotNull
+    @NotNull(message = "Il cognome non può essere nullo")
     private String surname;
     private LocalDate birthDate;
     private String photo; // path to photo

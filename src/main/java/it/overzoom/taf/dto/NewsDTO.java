@@ -6,14 +6,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class NewsDTO extends BaseDTO {
-    @NotNull
+    @NotNull(message = "Il titolo non può essere nullo")
     private String title;
-    @NotBlank
+    @NotBlank(message = "Il contenuto non può essere vuoto")
     private String content;
     private String author;
     private LocalDateTime publicationDate = LocalDateTime.now();
     private String[] tags;
-    @NotNull
+    @NotNull(message = "Il comune non può essere nullo")
     private String municipalityId;
 
     public String getTitle() {

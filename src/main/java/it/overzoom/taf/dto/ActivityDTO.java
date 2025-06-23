@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 
 public class ActivityDTO extends BaseDTO {
 
-    @NotNull
+    @NotNull(message = "L'attività non può essere creata senza un nome")
     private String name;
     private String address;
     private String phone;
@@ -17,7 +17,7 @@ public class ActivityDTO extends BaseDTO {
     private String description;
     private ActivityType type;
     private String[] tags;
-    @NotNull
+    @NotNull(message = "L'attività non può essere creata senza un comune")
     private String municipalityId;
 
     public String getName() {

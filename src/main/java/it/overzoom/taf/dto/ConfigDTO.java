@@ -3,7 +3,7 @@ package it.overzoom.taf.dto;
 import jakarta.validation.constraints.NotNull;
 
 public class ConfigDTO extends BaseDTO {
-    @NotNull
+    @NotNull(message = "Il comune non può essere nullo")
     private String municipalityId;
     private String context;
     private String section;

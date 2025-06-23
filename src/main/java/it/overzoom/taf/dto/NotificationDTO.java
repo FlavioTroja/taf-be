@@ -5,14 +5,14 @@ import java.time.LocalDateTime;
 import jakarta.validation.constraints.NotNull;
 
 public class NotificationDTO extends BaseDTO {
-    @NotNull
+    @NotNull(message = "Il messaggio non può essere nullo")
     private String message;
-    @NotNull
+    @NotNull(message = "Il destinatario non può essere nullo")
     private String recipientId;
     private String senderId;
     private boolean isRead = false;
     private long timestamp = LocalDateTime.now().toEpochSecond(java.time.ZoneOffset.UTC);
-    @NotNull
+    @NotNull(message = "Il comune non può essere nullo")
     private String municipalityId;
 
     public String getMessage() {

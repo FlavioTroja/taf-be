@@ -6,12 +6,12 @@ import it.overzoom.taf.type.EventType;
 import jakarta.validation.constraints.NotNull;
 
 public class EventDTO extends BaseDTO {
-    @NotNull
+    @NotNull(message = "Il titolo dell'evento non può essere vuoto")
     private String title;
     private String description;
-    @NotNull
+    @NotNull(message = "Il tipo dell'evento non può essere vuoto")
     private EventType type;
-    @NotNull
+    @NotNull(message = "La data di inizio non può essere vuota")
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
     private String location;
@@ -20,7 +20,7 @@ public class EventDTO extends BaseDTO {
     private String contactEmail;
     private String contactPhone;
     private String[] tags;
-    @NotNull
+    @NotNull(message = "Il comune non può essere vuoto")
     private String municipalityId;
     private String activityId;
     private Integer maxParticipants;

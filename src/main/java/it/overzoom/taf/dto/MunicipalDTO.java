@@ -4,9 +4,9 @@ import jakarta.validation.constraints.NotNull;
 
 public class MunicipalDTO extends BaseDTO {
 
-    @NotNull
+    @NotNull(message = "Il comune non può essere creato senza una città")
     private String city;
-    @NotNull
+    @NotNull(message = "Il comune non può essere creato senza una provincia")
     private String province;
     private String region;
     private String domain;
