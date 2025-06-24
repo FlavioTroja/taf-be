@@ -3,7 +3,9 @@ package it.overzoom.taf.controller;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
@@ -11,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -163,4 +166,41 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
         Event event = eventService.deleteGallery(id, photoName);
         return ResponseEntity.ok(eventMapper.toDto(event));
     }
+
+    // Iscrizione di un utente all'evento
+    @PostMapping("/{eventId}/register/{userId}")
+    public ResponseEntity<Map<String, Object>> registerUserToEvent(@PathVariable("eventId") String eventId,
+            @PathVariable("userId") String userId) throws ResourceNotFoundException,
+            BadRequestException {
+        eventService.registerUserToEvent(eventId, userId);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("status", HttpStatus.OK.value());
+        body.put("message", "Utente registrato con successo.");
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
+    // Cancellazione dell'iscrizione di un utente
+    @PostMapping("/{eventId}/unregister/{userId}")
+    public ResponseEntity<Map<String, Object>> unregisterUserFromEvent(@PathVariable("eventId") String eventId,
+            @PathVariable("userId") String userId) throws ResourceNotFoundException,
+            BadRequestException {
+        eventService.unregisterUserFromEvent(eventId, userId);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("status", HttpStatus.OK.value());
+        body.put("message", "Utente cancellato con successo.");
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
+    // Check-in di un utente
+    @PostMapping("/{eventId}/check-in/{userId}")
+    public ResponseEntity<Map<String, Object>> checkInUser(@PathVariable("eventId") String eventId,
+            @PathVariable("userId") String userId) throws ResourceNotFoundException,
+            BadRequestException {
+        eventService.checkInUser(eventId, userId);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("status", HttpStatus.OK.value());
+        body.put("message", "Check-in completato con successo.");
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
 }

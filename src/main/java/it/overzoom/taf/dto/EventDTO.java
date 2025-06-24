@@ -1,6 +1,10 @@
 package it.overzoom.taf.dto;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import it.overzoom.taf.type.EventType;
 import jakarta.validation.constraints.NotNull;
@@ -29,6 +33,8 @@ public class EventDTO extends BaseDTO {
     private Boolean isPublic;
     private Boolean isCancelled;
     private String url;
+    private List<String> participants = new ArrayList<>();
+    private Map<String, LocalDateTime> checkInTimes = new HashMap<>();
 
     public String getTitle() {
         return title;
@@ -180,5 +186,21 @@ public class EventDTO extends BaseDTO {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public List<String> getParticipants() {
+        return participants;
+    }
+
+    public void setParticipants(List<String> participants) {
+        this.participants = participants;
+    }
+
+    public Map<String, LocalDateTime> getCheckInTimes() {
+        return checkInTimes;
+    }
+
+    public void setCheckInTimes(Map<String, LocalDateTime> checkInTimes) {
+        this.checkInTimes = checkInTimes;
     }
 }

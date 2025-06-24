@@ -1,6 +1,10 @@
 package it.overzoom.taf.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -27,10 +31,12 @@ public class Event extends BaseEntity {
     @Indexed
     private String activityId;
     private Integer maxParticipants;
-    private Integer currentParticipants;
-    private Boolean isPublic;
-    private Boolean isCancelled;
+    private Integer currentParticipants = 0; // default to 0, will be updated when participants register
+    private Boolean isPublic = true; // default to public
+    private Boolean isCancelled = false;
     private String url;
+    private List<String> participants = new ArrayList<>(); // List of user IDs who registered for the event
+    private Map<String, LocalDateTime> checkInTimes = new HashMap<>();
 
     public String getTitle() {
         return title;
@@ -182,5 +188,47 @@ public class Event extends BaseEntity {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public List<String> getParticipants() {
+        return participants;
+    }
+
+    public void setParticipants(List<String> participants) {
+        this.participants = participants;
+    }
+
+    // Methods to handle participants
+    public void addParticipant(String userId) {
+        if (participants == null) {
+            participants = new ArrayList<>();
+        }
+
+        if (maxParticipants == null || currentParticipants < maxParticipants) {
+            if (!participants.contains(userId)) {
+                participants.add(userId);
+                currentParticipants++;
+            }
+        }
+    }
+
+    public void removeParticipant(String userId) {
+        if (participants != null && participants.contains(userId)) {
+            participants.remove(userId);
+            currentParticipants--;
+        }
+    }
+
+    public Map<String, LocalDateTime> getCheckInTimes() {
+        return checkInTimes;
+    }
+
+    public void setCheckInTimes(Map<String, LocalDateTime> checkInTimes) {
+        this.checkInTimes = checkInTimes;
+    }
+
+    // Metodo per aggiungere il check-in time
+    public void addCheckIn(String userId) {
+        checkInTimes.put(userId, LocalDateTime.now());
     }
 }

@@ -3,6 +3,7 @@ package it.overzoom.taf.service;
 import java.io.IOException;
 import java.util.Optional;
 
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,4 +32,14 @@ public interface EventService {
     Event uploadGallery(String eventId, MultipartFile[] files) throws IOException, ResourceNotFoundException;
 
     Event deleteGallery(String eventId, String photoName) throws IOException, ResourceNotFoundException;
+
+    boolean canUserRegister(String eventId);
+
+    boolean isUserRegistered(String eventId, String userId);
+
+    void unregisterUserFromEvent(String eventId, String userId) throws ResourceNotFoundException, BadRequestException;
+
+    void registerUserToEvent(String eventId, String userId) throws ResourceNotFoundException, BadRequestException;
+
+    void checkInUser(String eventId, String userId) throws ResourceNotFoundException, BadRequestException;
 }

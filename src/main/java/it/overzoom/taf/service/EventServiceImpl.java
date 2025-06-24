@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -189,4 +190,101 @@ public class EventServiceImpl implements EventService {
         }
         return event;
     }
+
+    public boolean canUserRegister(String eventId) {
+        Optional<Event> event = findById(eventId);
+        if (event.isPresent()) {
+            Event e = event.get();
+
+            // Se maxParticipants è null, non ci sono limiti di partecipanti
+            if (e.getMaxParticipants() == null) {
+                return true;
+            }
+
+            // Se l'evento ha un limite di partecipanti, verifica se è stato superato
+            if (e.getCurrentParticipants() >= e.getMaxParticipants()) {
+                // Controllo per overbooking
+                if (!e.getIsPublic()) {
+                    return false; // Se non è pubblico, non si può superare il limite
+                }
+
+                // Implementa la logica per overbooking, ad esempio:
+                if (e.getCurrentParticipants() + 1 > e.getMaxParticipants() + e.getMaxParticipants() * 0.1) {
+                    return false; // Se l'overbooking supera il 10% del limite, impedisci l'iscrizione
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean isUserRegistered(String eventId, String userId) {
+        Optional<Event> event = findById(eventId);
+        return event.map(value -> value.getParticipants().contains(userId)).orElse(false);
+    }
+
+    public void registerUserToEvent(String eventId, String userId) throws ResourceNotFoundException,
+            BadRequestException {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
+
+        // Verifica se l'evento è già cancellato
+        if (event.getIsCancelled()) {
+            throw new BadRequestException("L'evento è stato cancellato.");
+        }
+
+        // Verifica se l'utente è già registrato
+        if (event.getParticipants().contains(userId)) {
+            throw new BadRequestException("L'utente è già registrato a questo evento.");
+        }
+
+        // Verifica se l'evento è pieno
+        if (!canUserRegister(eventId)) {
+            throw new BadRequestException("L'evento è pieno.");
+        }
+
+        // Aggiungi il partecipante
+        event.addParticipant(userId);
+
+        // Salva il partecipante e aggiorna il numero di partecipanti
+        eventRepository.save(event);
+    }
+
+    public void unregisterUserFromEvent(String eventId, String userId) throws ResourceNotFoundException,
+            BadRequestException {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
+
+        // Verifica se l'utente è iscritto
+        if (!event.getParticipants().contains(userId)) {
+            throw new BadRequestException("L'utente non è registrato a questo evento.");
+        }
+
+        // Rimuovi il partecipante
+        event.removeParticipant(userId);
+
+        // Rimuovi anche il check-in dell'utente dalla mappa
+        if (event.getCheckInTimes().containsKey(userId)) {
+            event.getCheckInTimes().remove(userId);
+        }
+
+        // Salva l'evento aggiornato
+        eventRepository.save(event);
+    }
+
+    public void checkInUser(String eventId, String userId) throws ResourceNotFoundException, BadRequestException {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
+
+        // Verifica se l'utente è registrato
+        if (!event.getParticipants().contains(userId)) {
+            throw new BadRequestException("L'utente non è registrato a questo evento.");
+        }
+
+        // Aggiungi il check-in time
+        event.addCheckIn(userId);
+
+        // Salva l'evento con il nuovo check-in
+        eventRepository.save(event);
+    }
+
 }
