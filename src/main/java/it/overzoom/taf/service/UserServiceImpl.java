@@ -101,7 +101,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + userId));
-        String path = photoService.uploadPhoto(EntityType.USER, userId, file, PhotoType.LOGO, 1);
+        String path = photoService.uploadPhoto(EntityType.USER, userId, file, PhotoType.LOGO);
 
         user.setPhoto(path);
 
