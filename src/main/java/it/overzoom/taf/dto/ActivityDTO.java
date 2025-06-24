@@ -1,25 +1,53 @@
 package it.overzoom.taf.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import it.overzoom.taf.type.ActivityType;
 import jakarta.validation.constraints.NotNull;
 
 public class ActivityDTO extends BaseDTO {
 
     @NotNull(message = "L'attività non può essere creata senza un nome")
+    @Schema(description = "Il nome dell'attività", example = "Centro Sportivo")
     private String name;
+
+    @Schema(description = "Indirizzo dell'attività", example = "Via Roma 1, Milano")
     private String address;
-    private Double latitude; // optional, for map display
-    private Double longitude; // optional, for map display
+
+    @Schema(description = "Latitudine dell'attività (opzionale, per la visualizzazione sulla mappa)", example = "45.4642")
+    private Double latitude;
+
+    @Schema(description = "Longitudine dell'attività (opzionale, per la visualizzazione sulla mappa)", example = "9.1900")
+    private Double longitude;
+
+    @Schema(description = "Numero di telefono dell'attività", example = "+39 02 1234567")
     private String phone;
-    private String[] photos; // path to photos
-    private String cover; // path to cover photo
-    private String logo; // path to logo
+
+    @Schema(description = "Foto dell'attività (path alle foto)", example = "[\"/images/photo1.jpg\", \"/images/photo2.jpg\"]")
+    private String[] photos;
+
+    @Schema(description = "Path dell'immagine di copertura dell'attività", example = "/images/cover.jpg")
+    private String cover;
+
+    @Schema(description = "Path del logo dell'attività", example = "/images/logo.jpg")
+    private String logo;
+
+    @Schema(description = "Orari di apertura dell'attività", example = "[\"09:00-18:00\", \"09:00-13:00\"]")
     private String[] openingHours;
+
+    @Schema(description = "Sito web dell'attività", example = "https://www.centrosportivo.com")
     private String website;
+
+    @Schema(description = "Descrizione dell'attività", example = "Un centro sportivo che offre attività di tennis e nuoto.")
     private String description;
+
+    @Schema(description = "Tipo di attività", example = "SPORT")
     private ActivityType type;
+
+    @Schema(description = "Tag associati all'attività", example = "[\"tennis\", \"nuoto\", \"fitness\"]")
     private String[] tags;
+
     @NotNull(message = "L'attività non può essere creata senza un comune")
+    @Schema(description = "ID del comune associato all'attività", example = "6852b4b11170095376c87d96")
     private String municipalityId;
 
     public String getName() {

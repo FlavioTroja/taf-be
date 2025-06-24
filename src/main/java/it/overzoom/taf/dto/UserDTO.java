@@ -2,18 +2,32 @@ package it.overzoom.taf.dto;
 
 import java.time.LocalDate;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
 public class UserDTO extends BaseDTO {
 
+    @Schema(description = "ID univoco dell'utente in Cognito", example = "12345")
     private String userId;
+
     @NotNull(message = "Il nome non può essere nullo")
+    @Schema(description = "Nome dell'utente", example = "Mario")
     private String name;
+
     @NotNull(message = "Il cognome non può essere nullo")
+    @Schema(description = "Cognome dell'utente", example = "Rossi")
     private String surname;
+
+    @Schema(description = "Data di nascita dell'utente", example = "1990-01-01")
     private LocalDate birthDate;
-    private String photo; // path to photo
+
+    @Schema(description = "Path alla foto dell'utente", example = "/images/user_photo.jpg")
+    private String photo;
+
+    @Schema(description = "Ruoli associati all'utente", example = "[\"ROLE_ADMIN\", \"ROLE_USER\"]")
     private String[] roles;
+
+    @Schema(description = "ID del comune associato all'utente", example = "6852b4b11170095376c87d96")
     private String municipalityId;
 
     public String getUserId() {
