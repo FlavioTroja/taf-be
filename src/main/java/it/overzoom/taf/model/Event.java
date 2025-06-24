@@ -2,7 +2,6 @@ package it.overzoom.taf.model;
 
 import java.time.LocalDateTime;
 
-import org.bson.types.Binary;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -17,7 +16,8 @@ public class Event extends BaseEntity {
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
     private String location;
-    private Binary[] photos;
+    private String cover;
+    private String[] photos;
     private String organizer;
     private String contactEmail;
     private String contactPhone;
@@ -80,11 +80,19 @@ public class Event extends BaseEntity {
         this.location = location;
     }
 
-    public Binary[] getPhotos() {
+    public String getCover() {
+        return cover;
+    }
+
+    public void setCover(String cover) {
+        this.cover = cover;
+    }
+
+    public String[] getPhotos() {
         return photos;
     }
 
-    public void setPhotos(Binary[] photos) {
+    public void setPhotos(String[] photos) {
         this.photos = photos;
     }
 

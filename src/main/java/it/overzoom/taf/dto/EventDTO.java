@@ -15,6 +15,7 @@ public class EventDTO extends BaseDTO {
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
     private String location;
+    private String cover; // path to cover photo
     private String[] photos; // path to photos
     private String organizer;
     private String contactEmail;
@@ -83,6 +84,14 @@ public class EventDTO extends BaseDTO {
 
     public void setPhotos(String[] photos) {
         this.photos = photos;
+    }
+
+    public String getCover() {
+        return cover;
+    }
+
+    public void setCover(String cover) {
+        this.cover = cover;
     }
 
     public String getOrganizer() {
