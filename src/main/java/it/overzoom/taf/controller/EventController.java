@@ -170,7 +170,6 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
         return ResponseEntity.ok(eventMapper.toDto(event));
     }
 
-    // Iscrizione di un utente all'evento
     @PostMapping("/{eventId}/register/{userId}")
     @Operation(summary = "Iscrizione di un utente a un evento", description = "Permette a un utente di registrarsi a un evento specificato tramite eventId.", parameters = {
             @Parameter(name = "eventId", description = "ID dell'evento a cui l'utente si deve iscrivere", required = true),
@@ -190,7 +189,6 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
-    // Cancellazione dell'iscrizione di un utente
     @PostMapping("/{eventId}/unregister/{userId}")
     @Operation(summary = "Cancellazione dell'iscrizione di un utente", description = "Permette a un utente di cancellarsi da un evento specificato tramite eventId.", parameters = {
             @Parameter(name = "eventId", description = "ID dell'evento da cui l'utente si deve cancellare", required = true),
@@ -210,7 +208,6 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
-    // Check-in di un utente
     @PostMapping("/{eventId}/check-in/{userId}")
     @Operation(summary = "Check-in di un utente a un evento", description = "Permette a un utente di effettuare il check-in per un evento specificato tramite eventId.", parameters = {
             @Parameter(name = "eventId", description = "ID dell'evento a cui l'utente deve fare il check-in", required = true),
@@ -234,8 +231,8 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
     @Operation(summary = "Recupera gli eventi a cui un utente è registrato", description = "Restituisce una lista paginata di eventi a cui un utente (identificato da userId) è registrato.", parameters = {
             @Parameter(name = "userId", description = "ID dell'utente per cui recuperare gli eventi", required = true)
     }, responses = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Lista di eventi dell'utente trovata e restituita"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "Nessun evento trovato per l'utente")
+            @ApiResponse(responseCode = "200", description = "Lista di eventi dell'utente trovata e restituita"),
+            @ApiResponse(responseCode = "204", description = "Nessun evento trovato per l'utente")
     })
     public ResponseEntity<Page<EventDTO>> getUserEvents(@PathVariable("userId") String userId, Pageable pageable) {
         Page<Event> userEvents = eventService.getEventsByUserId(userId, pageable);

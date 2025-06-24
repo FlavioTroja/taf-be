@@ -13,6 +13,8 @@ public class NewsDTO extends BaseDTO {
     private String author;
     private LocalDateTime publicationDate = LocalDateTime.now();
     private String[] tags;
+    private String cover;
+    private String[] photos;
     @NotNull(message = "Il comune non può essere nullo")
     private String municipalityId;
 
@@ -54,6 +56,22 @@ public class NewsDTO extends BaseDTO {
 
     public void setTags(String[] tags) {
         this.tags = tags;
+    }
+
+    public String getCover() {
+        return cover;
+    }
+
+    public void setCover(String cover) {
+        this.cover = cover;
+    }
+
+    public String[] getPhotos() {
+        return photos;
+    }
+
+    public void setPhotos(String[] photos) {
+        this.photos = photos;
     }
 
     public String getMunicipalityId() {

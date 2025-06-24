@@ -1,5 +1,6 @@
 package it.overzoom.taf.controller;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -19,7 +20,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import it.overzoom.taf.dto.NewsDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
@@ -132,6 +135,31 @@ public class NewsController extends BaseSearchController<News, NewsDTO> {
         }
         newsService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/upload-cover")
+    public ResponseEntity<NewsDTO> uploadCover(@PathVariable("id") String id,
+            @RequestParam("file") MultipartFile file)
+            throws ResourceNotFoundException, IOException {
+        News news = newsService.uploadCover(id, file);
+        return ResponseEntity.ok(newsMapper.toDto(news));
+    }
+
+    @PostMapping("/{id}/upload-gallery")
+    public ResponseEntity<NewsDTO> uploadGallery(
+            @PathVariable("id") String id,
+            @RequestParam("file") MultipartFile[] file)
+            throws ResourceNotFoundException, IOException {
+        News news = newsService.uploadGallery(id, file);
+        return ResponseEntity.ok(newsMapper.toDto(news));
+    }
+
+    @DeleteMapping("/{id}/gallery/{photoName}")
+    public ResponseEntity<NewsDTO> deleteGallery(@PathVariable("id") String id,
+            @PathVariable("photoName") String photoName)
+            throws ResourceNotFoundException, IOException {
+        News news = newsService.deleteGallery(id, photoName);
+        return ResponseEntity.ok(newsMapper.toDto(news));
     }
 
 }

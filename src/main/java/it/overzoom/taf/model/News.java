@@ -13,6 +13,8 @@ public class News extends BaseEntity {
     private String author;
     private LocalDateTime publicationDate;
     private String[] tags;
+    private String cover;
+    private String[] photos;
     @Indexed
     private String municipalityId;
 
@@ -62,5 +64,21 @@ public class News extends BaseEntity {
 
     public void setMunicipalityId(String municipalityId) {
         this.municipalityId = municipalityId;
+    }
+
+    public String getCover() {
+        return cover;
+    }
+
+    public void setCover(String cover) {
+        this.cover = cover;
+    }
+
+    public String[] getPhotos() {
+        return photos;
+    }
+
+    public void setPhotos(String[] photos) {
+        this.photos = photos;
     }
 }
