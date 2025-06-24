@@ -203,4 +203,9 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Page<EventDTO>> getUserEvents(@PathVariable("userId") String userId, Pageable pageable) {
+        Page<Event> userEvents = eventService.getEventsByUserId(userId, pageable);
+        return ResponseEntity.ok(userEvents.map(eventMapper::toDto));
+    }
 }

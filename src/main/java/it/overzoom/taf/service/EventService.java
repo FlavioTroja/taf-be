@@ -42,4 +42,6 @@ public interface EventService {
     void registerUserToEvent(String eventId, String userId) throws ResourceNotFoundException, BadRequestException;
 
     void checkInUser(String eventId, String userId) throws ResourceNotFoundException, BadRequestException;
+
+    Page<Event> getEventsByUserId(String userId, Pageable pageable);
 }

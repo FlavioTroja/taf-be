@@ -287,4 +287,7 @@ public class EventServiceImpl implements EventService {
         eventRepository.save(event);
     }
 
+    public Page<Event> getEventsByUserId(String userId, Pageable pageable) {
+        return eventRepository.findEventsByUserId(userId, pageable);
+    }
 }
