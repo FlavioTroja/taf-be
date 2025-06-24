@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.overzoom.taf.dto.UserDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.UserMapper;
@@ -80,6 +83,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "Login utente", description = "Effettua il login dell'utente utilizzando nome utente e password", parameters = {
+            @Parameter(name = "usernameOrEmail", description = "Nome utente o email dell'utente", required = true),
+            @Parameter(name = "password", description = "Password dell'utente", required = true)
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Login avvenuto con successo"),
+            @ApiResponse(responseCode = "400", description = "Credenziali errate o mancanti"),
+            @ApiResponse(responseCode = "500", description = "Errore del server durante il login")
+    })
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         String secretHash = calculateSecretHash(
                 req.usernameOrEmail, clientId, clientSecret);
@@ -103,6 +114,18 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @Operation(summary = "Registrazione utente", description = "Crea un nuovo account utente nel sistema", parameters = {
+            @Parameter(name = "name", description = "Nome dell'utente", required = true),
+            @Parameter(name = "surname", description = "Cognome dell'utente", required = true),
+            @Parameter(name = "email", description = "Email dell'utente", required = true),
+            @Parameter(name = "password", description = "Password dell'utente", required = true),
+            @Parameter(name = "confirmPassword", description = "Conferma password dell'utente", required = true)
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Registrazione completata con successo"),
+            @ApiResponse(responseCode = "400", description = "Le password non corrispondono"),
+            @ApiResponse(responseCode = "409", description = "L'utente esiste già"),
+            @ApiResponse(responseCode = "500", description = "Errore durante la registrazione")
+    })
     public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
         log.info("Registering user: {}", req.email);
         if (!req.password.equals(req.confirmPassword)) {
@@ -156,6 +179,14 @@ public class AuthController {
     }
 
     @PostMapping("/confirm")
+    @Operation(summary = "Conferma l'account dell'utente", description = "Conferma un account utente tramite il codice di conferma inviato", parameters = {
+            @Parameter(name = "email", description = "Email dell'utente da confermare", required = true),
+            @Parameter(name = "confirmationCode", description = "Codice di conferma ricevuto via email", required = true)
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Account confermato con successo"),
+            @ApiResponse(responseCode = "400", description = "Errore nel codice di conferma"),
+            @ApiResponse(responseCode = "500", description = "Errore del server durante la conferma")
+    })
     public ResponseEntity<?> confirm(@RequestBody ConfirmRequest req) {
         String secretHash = calculateSecretHash(req.email, clientId, clientSecret);
 
@@ -174,6 +205,10 @@ public class AuthController {
     }
 
     @GetMapping("/profile")
+    @Operation(summary = "Recupera il profilo dell'utente", description = "Restituisce le informazioni del profilo dell'utente corrente", responses = {
+            @ApiResponse(responseCode = "200", description = "Profilo utente restituito con successo"),
+            @ApiResponse(responseCode = "404", description = "Utente non trovato")
+    })
     public ResponseEntity<UserDTO> getMyProfile() throws ResourceNotFoundException {
         return userService.findByUserId(SecurityUtils.getCurrentUserId()).map(userMapper::toDto)
                 .map(ResponseEntity::ok)

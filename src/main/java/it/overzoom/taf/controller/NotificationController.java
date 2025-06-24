@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.overzoom.taf.dto.NotificationDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.NotificationMapper;
@@ -69,6 +72,10 @@ public class NotificationController extends BaseSearchController<Notification, N
     }
 
     @GetMapping("")
+    @Operation(summary = "Recupera una lista di notifiche", description = "Restituisce una lista paginata di tutte le notifiche", responses = {
+            @ApiResponse(responseCode = "200", description = "Lista di notifiche trovata e restituita"),
+            @ApiResponse(responseCode = "204", description = "Nessuna notifica trovata")
+    })
     public ResponseEntity<Page<NotificationDTO>> findAll(Pageable pageable) {
         log.info("REST request to get a page of Notifications");
         Page<Notification> page = notificationService.findAll(pageable);
@@ -76,6 +83,10 @@ public class NotificationController extends BaseSearchController<Notification, N
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Recupera una notifica per ID", description = "Restituisce i dettagli di una notifica specifica utilizzando l'ID", parameters = @Parameter(name = "id", description = "ID della notifica", required = true), responses = {
+            @ApiResponse(responseCode = "200", description = "Notifica trovata e restituita"),
+            @ApiResponse(responseCode = "404", description = "Notifica non trovata con questo ID")
+    })
     public ResponseEntity<NotificationDTO> findById(@PathVariable("id") String id) throws ResourceNotFoundException {
         return notificationService.findById(id)
                 .map(notificationMapper::toDto)
@@ -84,6 +95,11 @@ public class NotificationController extends BaseSearchController<Notification, N
     }
 
     @PostMapping("/create")
+    @Operation(summary = "Crea una nuova notifica", description = "Crea una nuova notifica. L'ID non deve essere fornito per una nuova notifica", responses = {
+            @ApiResponse(responseCode = "201", description = "Notifica creata con successo"),
+            @ApiResponse(responseCode = "400", description = "ID fornito erroneamente per una nuova notifica"),
+            @ApiResponse(responseCode = "404", description = "Utente non trovato per l'invio della notifica")
+    })
     public ResponseEntity<NotificationDTO> create(@Valid @RequestBody NotificationDTO notificationDTO)
             throws BadRequestException, URISyntaxException, ResourceNotFoundException {
         log.info("REST request to save Notification : {}", notificationDTO);
@@ -103,6 +119,11 @@ public class NotificationController extends BaseSearchController<Notification, N
     }
 
     @PutMapping("")
+    @Operation(summary = "Aggiorna una notifica", description = "Aggiorna una notifica esistente. L'ID deve essere fornito per identificare la notifica da aggiornare", responses = {
+            @ApiResponse(responseCode = "200", description = "Notifica aggiornata con successo"),
+            @ApiResponse(responseCode = "400", description = "ID non valido o mancante"),
+            @ApiResponse(responseCode = "404", description = "Notifica non trovata con l'ID fornito")
+    })
     public ResponseEntity<NotificationDTO> update(@Valid @RequestBody NotificationDTO notificationDTO)
             throws BadRequestException, ResourceNotFoundException {
         log.info("REST request to update Notification: {}", notificationDTO);
@@ -121,6 +142,10 @@ public class NotificationController extends BaseSearchController<Notification, N
     }
 
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @Operation(summary = "Aggiorna parzialmente una notifica", description = "Aggiorna parzialmente una notifica esistente, con la possibilità di aggiornare solo i campi forniti", parameters = @Parameter(name = "id", description = "ID della notifica da aggiornare", required = true), responses = {
+            @ApiResponse(responseCode = "200", description = "Notifica parzialmente aggiornata"),
+            @ApiResponse(responseCode = "404", description = "Notifica non trovata con l'ID fornito")
+    })
     public ResponseEntity<NotificationDTO> partialUpdate(@PathVariable("id") String id,
             @RequestBody NotificationDTO notificationDTO)
             throws BadRequestException, ResourceNotFoundException {
@@ -139,6 +164,10 @@ public class NotificationController extends BaseSearchController<Notification, N
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Cancella una notifica", description = "Cancella la notifica specificata tramite ID", parameters = @Parameter(name = "id", description = "ID della notifica da eliminare", required = true), responses = {
+            @ApiResponse(responseCode = "204", description = "Notifica eliminata con successo"),
+            @ApiResponse(responseCode = "404", description = "Notifica non trovata con l'ID fornito")
+    })
     public ResponseEntity<Void> deleteById(@PathVariable("id") String id) throws ResourceNotFoundException {
         log.info("REST request to delete Notification with ID: {}", id);
         if (!notificationService.existsById(id)) {
@@ -149,6 +178,10 @@ public class NotificationController extends BaseSearchController<Notification, N
     }
 
     @GetMapping("/latest")
+    @Operation(summary = "Recupera le ultime notifiche", description = "Restituisce le ultime notifiche inviate, limitando il numero tramite il parametro 'size'.", parameters = @Parameter(name = "size", description = "Numero di notifiche da recuperare", required = false), responses = {
+            @ApiResponse(responseCode = "200", description = "Ultime notifiche trovate e restituite"),
+            @ApiResponse(responseCode = "204", description = "Nessuna notifica trovata")
+    })
     public ResponseEntity<Page<NotificationDTO>> getLatestNotifications(@RequestParam(defaultValue = "5") int size) {
         log.info("REST request to get the latest {} notifications", size);
         Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "timestamp"));

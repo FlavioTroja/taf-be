@@ -19,6 +19,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 public abstract class BaseSearchController<T, DTO> {
 
     @Autowired
@@ -35,6 +39,12 @@ public abstract class BaseSearchController<T, DTO> {
     }
 
     @PostMapping("/search")
+    @Operation(summary = "Esegui una ricerca", description = "Questo endpoint consente di effettuare una ricerca con filtri, ordinamento e ricerca full-text.", parameters = {
+            @Parameter(name = "request", description = "Oggetto di ricerca contenente filtri, parametri di ordinamento e termini di ricerca", required = true)
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Ricerca completata con successo e restituita una pagina di risultati"),
+            @ApiResponse(responseCode = "400", description = "Errore nella richiesta, come un parametro mancante o errato")
+    })
     public ResponseEntity<Page<DTO>> search(@RequestBody Map<String, Object> request) {
         int page = (int) request.getOrDefault("page", 0);
         int limit = (int) request.getOrDefault("limit", 10);

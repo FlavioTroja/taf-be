@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.overzoom.taf.dto.NewsDTO;
 import it.overzoom.taf.mapper.NewsMapper;
 import it.overzoom.taf.model.News;
@@ -31,6 +34,12 @@ public class NewsPublicController {
     }
 
     @GetMapping("/latest")
+    @Operation(summary = "Recupera le ultime notizie", description = "Restituisce una lista paginata delle ultime notizie in ordine decrescente per data di pubblicazione", parameters = {
+            @Parameter(name = "size", description = "Numero di notizie da restituire, predefinito a 5", required = false)
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Lista delle ultime notizie trovate e restituita"),
+            @ApiResponse(responseCode = "204", description = "Nessuna notizia trovata")
+    })
     public ResponseEntity<Page<NewsDTO>> getLatestNews(@RequestParam(defaultValue = "5") int size) {
         log.info("REST request to get the latest {} news", size);
         Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "publicationDate"));
