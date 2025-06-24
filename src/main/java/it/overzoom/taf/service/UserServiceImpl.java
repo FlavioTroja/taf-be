@@ -99,7 +99,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User uploadPhoto(String userId, MultipartFile file) throws IOException, ResourceNotFoundException {
 
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + userId));
         String path = photoService.uploadPhoto(EntityType.USER, userId, file, PhotoType.LOGO);
 
