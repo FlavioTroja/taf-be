@@ -27,6 +27,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.overzoom.taf.dto.EventDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.EventMapper;
@@ -169,6 +172,14 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
 
     // Iscrizione di un utente all'evento
     @PostMapping("/{eventId}/register/{userId}")
+    @Operation(summary = "Iscrizione di un utente a un evento", description = "Permette a un utente di registrarsi a un evento specificato tramite eventId.", parameters = {
+            @Parameter(name = "eventId", description = "ID dell'evento a cui l'utente si deve iscrivere", required = true),
+            @Parameter(name = "userId", description = "ID dell'utente che si deve iscrivere all'evento", required = true)
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Utente registrato con successo"),
+            @ApiResponse(responseCode = "400", description = "Errore nella richiesta, ad esempio, l'utente è già registrato a questo evento"),
+            @ApiResponse(responseCode = "404", description = "Evento o utente non trovato")
+    })
     public ResponseEntity<Map<String, Object>> registerUserToEvent(@PathVariable("eventId") String eventId,
             @PathVariable("userId") String userId) throws ResourceNotFoundException,
             BadRequestException {
@@ -181,6 +192,14 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
 
     // Cancellazione dell'iscrizione di un utente
     @PostMapping("/{eventId}/unregister/{userId}")
+    @Operation(summary = "Cancellazione dell'iscrizione di un utente", description = "Permette a un utente di cancellarsi da un evento specificato tramite eventId.", parameters = {
+            @Parameter(name = "eventId", description = "ID dell'evento da cui l'utente si deve cancellare", required = true),
+            @Parameter(name = "userId", description = "ID dell'utente che si cancella dall'evento", required = true)
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Utente cancellato con successo"),
+            @ApiResponse(responseCode = "400", description = "Errore nella richiesta, ad esempio, l'utente non è iscritto a questo evento"),
+            @ApiResponse(responseCode = "404", description = "Evento o utente non trovato")
+    })
     public ResponseEntity<Map<String, Object>> unregisterUserFromEvent(@PathVariable("eventId") String eventId,
             @PathVariable("userId") String userId) throws ResourceNotFoundException,
             BadRequestException {
@@ -193,6 +212,14 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
 
     // Check-in di un utente
     @PostMapping("/{eventId}/check-in/{userId}")
+    @Operation(summary = "Check-in di un utente a un evento", description = "Permette a un utente di effettuare il check-in per un evento specificato tramite eventId.", parameters = {
+            @Parameter(name = "eventId", description = "ID dell'evento a cui l'utente deve fare il check-in", required = true),
+            @Parameter(name = "userId", description = "ID dell'utente che effettua il check-in", required = true)
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Check-in completato con successo"),
+            @ApiResponse(responseCode = "400", description = "Errore nella richiesta, ad esempio, l'utente non è registrato all'evento"),
+            @ApiResponse(responseCode = "404", description = "Evento o utente non trovato")
+    })
     public ResponseEntity<Map<String, Object>> checkInUser(@PathVariable("eventId") String eventId,
             @PathVariable("userId") String userId) throws ResourceNotFoundException,
             BadRequestException {
@@ -204,6 +231,12 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
     }
 
     @GetMapping("/user/{userId}")
+    @Operation(summary = "Recupera gli eventi a cui un utente è registrato", description = "Restituisce una lista paginata di eventi a cui un utente (identificato da userId) è registrato.", parameters = {
+            @Parameter(name = "userId", description = "ID dell'utente per cui recuperare gli eventi", required = true)
+    }, responses = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Lista di eventi dell'utente trovata e restituita"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "Nessun evento trovato per l'utente")
+    })
     public ResponseEntity<Page<EventDTO>> getUserEvents(@PathVariable("userId") String userId, Pageable pageable) {
         Page<Event> userEvents = eventService.getEventsByUserId(userId, pageable);
         return ResponseEntity.ok(userEvents.map(eventMapper::toDto));
