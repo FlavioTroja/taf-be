@@ -123,7 +123,7 @@ public class NewsServiceImpl implements NewsService {
         }
 
         for (MultipartFile file : files) {
-            String path = photoService.uploadPhoto(EntityType.EVENT, newsId, file, PhotoType.GALLERY, nextIndex);
+            String path = photoService.uploadPhoto(EntityType.NEWS, newsId, file, PhotoType.GALLERY, nextIndex);
             photos.add(path);
             nextIndex++;
         }
