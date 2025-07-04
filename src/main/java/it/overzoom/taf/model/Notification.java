@@ -9,7 +9,7 @@ public class Notification extends BaseEntity {
     private String recipientId; // ID of the user or group receiving the notification
     private String senderId; // ID of the user sending the notification
     private boolean isRead; // Indicates if the notification has been read
-    private long timestamp; // Time when the notification was created
+    private long timestamp = System.currentTimeMillis(); // Time when the notification was created
     @Indexed
     private String municipalityId; // ID of the municipality associated with the notification
 
