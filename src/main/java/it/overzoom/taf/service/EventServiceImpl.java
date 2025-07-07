@@ -196,21 +196,17 @@ public class EventServiceImpl implements EventService {
         if (event.isPresent()) {
             Event e = event.get();
 
-            // Se maxParticipants è null, non ci sono limiti di partecipanti
             if (e.getMaxParticipants() == null) {
                 return true;
             }
 
-            // Se l'evento ha un limite di partecipanti, verifica se è stato superato
             if (e.getCurrentParticipants() >= e.getMaxParticipants()) {
-                // Controllo per overbooking
                 if (!e.getIsPublic()) {
-                    return false; // Se non è pubblico, non si può superare il limite
+                    return false;
                 }
 
-                // Implementa la logica per overbooking, ad esempio:
                 if (e.getCurrentParticipants() + 1 > e.getMaxParticipants() + e.getMaxParticipants() * 0.1) {
-                    return false; // Se l'overbooking supera il 10% del limite, impedisci l'iscrizione
+                    return false;
                 }
             }
         }
