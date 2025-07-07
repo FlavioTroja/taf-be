@@ -223,25 +223,20 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
 
-        // Verifica se l'evento è già cancellato
         if (event.getIsCancelled()) {
             throw new BadRequestException("L'evento è stato cancellato.");
         }
 
-        // Verifica se l'utente è già registrato
         if (event.getParticipants().contains(userId)) {
             throw new BadRequestException("L'utente è già registrato a questo evento.");
         }
 
-        // Verifica se l'evento è pieno
         if (!canUserRegister(eventId)) {
             throw new BadRequestException("L'evento è pieno.");
         }
 
-        // Aggiungi il partecipante
         event.addParticipant(userId);
 
-        // Salva il partecipante e aggiorna il numero di partecipanti
         eventRepository.save(event);
     }
 

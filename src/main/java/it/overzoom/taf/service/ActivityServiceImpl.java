@@ -69,6 +69,8 @@ public class ActivityServiceImpl implements ActivityService {
             existing.setDescription(activity.getDescription());
             existing.setType(activity.getType());
             existing.setTags(activity.getTags());
+            existing.setLatitude(activity.getLatitude());
+            existing.setLongitude(activity.getLongitude());
             return existing;
         }).map(activityRepository::save);
     }
@@ -101,6 +103,10 @@ public class ActivityServiceImpl implements ActivityService {
                 existing.setType(activity.getType());
             if (activity.getTags() != null)
                 existing.setTags(activity.getTags());
+            if (activity.getLatitude() != null)
+                existing.setLatitude(activity.getLatitude());
+            if (activity.getLongitude() != null)
+                existing.setLongitude(activity.getLongitude());
             return existing;
         }).map(activityRepository::save);
     }
