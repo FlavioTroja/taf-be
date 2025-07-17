@@ -24,6 +24,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.overzoom.taf.dto.UserDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.UserMapper;
@@ -65,6 +68,10 @@ public class UserController extends BaseSearchController<User, UserDTO> {
     }
 
     @GetMapping("")
+    @Operation(summary = "Recupera una lista di utenti", description = "Restituisce una lista paginata di tutti gli utenti", responses = {
+            @ApiResponse(responseCode = "200", description = "Lista di utenti trovata e restituita"),
+            @ApiResponse(responseCode = "204", description = "Nessun utente trovato")
+    })
     public ResponseEntity<Page<UserDTO>> findAll(
             Pageable pageable) {
         log.info("REST request to get a page of Users");
@@ -73,6 +80,10 @@ public class UserController extends BaseSearchController<User, UserDTO> {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Recupera un utente per ID", description = "Restituisce i dettagli di un utente specifico utilizzando l'ID", parameters = @Parameter(name = "id", description = "ID dell'utente", required = true), responses = {
+            @ApiResponse(responseCode = "200", description = "Utente trovato e restituito"),
+            @ApiResponse(responseCode = "404", description = "Utente non trovato con questo ID")
+    })
     public ResponseEntity<UserDTO> findById(@PathVariable("id") String id)
             throws ResourceNotFoundException, BadRequestException {
 
@@ -87,6 +98,10 @@ public class UserController extends BaseSearchController<User, UserDTO> {
     }
 
     @PostMapping("/create")
+    @Operation(summary = "Crea un nuovo utente", description = "Crea un nuovo utente. L'ID non deve essere fornito per un nuovo utente", responses = {
+            @ApiResponse(responseCode = "201", description = "Utente creato con successo"),
+            @ApiResponse(responseCode = "400", description = "ID fornito erroneamente per un nuovo utente")
+    })
     public ResponseEntity<UserDTO> create(@Valid @RequestBody UserDTO userDTO)
             throws BadRequestException, URISyntaxException {
         log.info("REST request to save User : " + userDTO.toString());
@@ -99,6 +114,11 @@ public class UserController extends BaseSearchController<User, UserDTO> {
     }
 
     @PutMapping("")
+    @Operation(summary = "Aggiorna un utente", description = "Aggiorna un utente esistente. L'ID deve essere fornito per identificare l'utente da aggiornare", responses = {
+            @ApiResponse(responseCode = "200", description = "Utente aggiornato con successo"),
+            @ApiResponse(responseCode = "400", description = "ID non valido o mancante"),
+            @ApiResponse(responseCode = "404", description = "Utente non trovato con l'ID fornito")
+    })
     public ResponseEntity<UserDTO> update(@Valid @RequestBody UserDTO userDTO) throws BadRequestException,
             ResourceNotFoundException {
         log.info("REST request to update User:" + userDTO.toString());
@@ -116,6 +136,10 @@ public class UserController extends BaseSearchController<User, UserDTO> {
     }
 
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @Operation(summary = "Aggiorna parzialmente un utente", description = "Aggiorna parzialmente un utente esistente, con la possibilità di aggiornare solo i campi forniti", parameters = @Parameter(name = "id", description = "ID dell'utente da aggiornare", required = true), responses = {
+            @ApiResponse(responseCode = "200", description = "Utente parzialmente aggiornato"),
+            @ApiResponse(responseCode = "404", description = "Utente non trovato con l'ID fornito")
+    })
     public ResponseEntity<UserDTO> partialUpdate(@PathVariable("id") String id,
             @RequestBody UserDTO userDTO) throws BadRequestException,
             ResourceNotFoundException {
@@ -134,6 +158,11 @@ public class UserController extends BaseSearchController<User, UserDTO> {
     }
 
     @PostMapping("/{id}/upload-photo")
+    @Operation(summary = "Carica la foto dell'utente", description = "Permette di caricare una foto per un utente specifico tramite ID", parameters = @Parameter(name = "id", description = "ID dell'utente a cui caricare la foto", required = true), responses = {
+            @ApiResponse(responseCode = "200", description = "Foto utente caricata con successo"),
+            @ApiResponse(responseCode = "400", description = "Errore nel caricamento della foto"),
+            @ApiResponse(responseCode = "404", description = "Utente non trovato con l'ID fornito")
+    })
     public ResponseEntity<UserDTO> uploadUserPhoto(@PathVariable("id") String id,
             @RequestParam("file") MultipartFile file) throws ResourceNotFoundException, IOException {
 
@@ -146,6 +175,10 @@ public class UserController extends BaseSearchController<User, UserDTO> {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Cancella un utente", description = "Cancella l'utente specificato tramite ID", parameters = @Parameter(name = "id", description = "ID dell'utente da eliminare", required = true), responses = {
+            @ApiResponse(responseCode = "204", description = "Utente eliminato con successo"),
+            @ApiResponse(responseCode = "404", description = "Utente non trovato con l'ID fornito")
+    })
     public ResponseEntity<Void> deleteById(@PathVariable("id") String id) throws ResourceNotFoundException {
         log.info("REST request to delete User with ID: {}", id);
         if (!userService.existsById(id)) {

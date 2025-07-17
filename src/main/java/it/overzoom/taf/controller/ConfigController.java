@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.overzoom.taf.dto.ConfigDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.ConfigMapper;
@@ -67,6 +70,10 @@ public class ConfigController extends BaseSearchController<Config, ConfigDTO> {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Recupera una configurazione per ID", description = "Restituisce una configurazione specifica utilizzando l'ID", parameters = @Parameter(name = "id", description = "ID della configurazione", required = true), responses = {
+            @ApiResponse(responseCode = "200", description = "Configurazione trovata e restituita"),
+            @ApiResponse(responseCode = "404", description = "Configurazione non trovata con questo ID")
+    })
     public ResponseEntity<ConfigDTO> findById(@PathVariable("id") String id) throws ResourceNotFoundException {
         return configService.findById(id)
                 .map(configMapper::toDto)
@@ -75,6 +82,10 @@ public class ConfigController extends BaseSearchController<Config, ConfigDTO> {
     }
 
     @GetMapping("/own")
+    @Operation(summary = "Recupera le configurazioni nascoste per l'utente", description = "Restituisce le configurazioni nascoste per l'utente corrente in base ai suoi ruoli", responses = {
+            @ApiResponse(responseCode = "200", description = "Configurazioni nascoste per l'utente trovate e restituite"),
+            @ApiResponse(responseCode = "404", description = "Nessuna configurazione trovata per l'utente")
+    })
     public ResponseEntity<Map<String, Map<String, List<String>>>> getHiddenComponentsForUser()
             throws ResourceNotFoundException {
         log.info("REST request to get structured hidden configs for current user");
@@ -101,6 +112,10 @@ public class ConfigController extends BaseSearchController<Config, ConfigDTO> {
     }
 
     @PostMapping("/create")
+    @Operation(summary = "Crea una nuova configurazione", description = "Crea una nuova configurazione. L'ID non deve essere fornito per una nuova configurazione", responses = {
+            @ApiResponse(responseCode = "201", description = "Configurazione creata con successo"),
+            @ApiResponse(responseCode = "400", description = "ID fornito erroneamente per una nuova configurazione")
+    })
     public ResponseEntity<ConfigDTO> create(@Valid @RequestBody ConfigDTO configDTO)
             throws BadRequestException, URISyntaxException {
         log.info("REST request to save Config: {}", configDTO);
@@ -113,6 +128,11 @@ public class ConfigController extends BaseSearchController<Config, ConfigDTO> {
     }
 
     @PutMapping("")
+    @Operation(summary = "Aggiorna una configurazione", description = "Aggiorna una configurazione esistente. L'ID deve essere fornito per identificare la configurazione da aggiornare", responses = {
+            @ApiResponse(responseCode = "200", description = "Configurazione aggiornata con successo"),
+            @ApiResponse(responseCode = "400", description = "ID non valido o mancante"),
+            @ApiResponse(responseCode = "404", description = "Configurazione non trovata con l'ID fornito")
+    })
     public ResponseEntity<ConfigDTO> update(@Valid @RequestBody ConfigDTO configDTO)
             throws BadRequestException, ResourceNotFoundException {
         log.info("REST request to update Config: {}", configDTO);
@@ -130,6 +150,10 @@ public class ConfigController extends BaseSearchController<Config, ConfigDTO> {
     }
 
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @Operation(summary = "Aggiorna parzialmente una configurazione", description = "Aggiorna parzialmente una configurazione esistente, con la possibilità di aggiornare solo i campi forniti", parameters = @Parameter(name = "id", description = "ID della configurazione da aggiornare", required = true), responses = {
+            @ApiResponse(responseCode = "200", description = "Configurazione parzialmente aggiornata"),
+            @ApiResponse(responseCode = "404", description = "Configurazione non trovata con l'ID fornito")
+    })
     public ResponseEntity<ConfigDTO> partialUpdate(@PathVariable("id") String id,
             @RequestBody ConfigDTO configDTO)
             throws BadRequestException, ResourceNotFoundException {
@@ -148,6 +172,10 @@ public class ConfigController extends BaseSearchController<Config, ConfigDTO> {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Cancella una configurazione", description = "Cancella la configurazione specificata tramite ID", parameters = @Parameter(name = "id", description = "ID della configurazione da eliminare", required = true), responses = {
+            @ApiResponse(responseCode = "204", description = "Configurazione eliminata con successo"),
+            @ApiResponse(responseCode = "404", description = "Configurazione non trovata con l'ID fornito")
+    })
     public ResponseEntity<Void> deleteById(@PathVariable("id") String id) throws ResourceNotFoundException {
         log.info("REST request to delete Config with ID: {}", id);
         if (!configService.existsById(id)) {

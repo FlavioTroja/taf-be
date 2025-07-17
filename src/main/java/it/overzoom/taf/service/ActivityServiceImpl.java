@@ -1,22 +1,35 @@
 package it.overzoom.taf.service;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.model.Activity;
 import it.overzoom.taf.repository.ActivityRepository;
+import it.overzoom.taf.type.EntityType;
+import it.overzoom.taf.type.PhotoType;
 
 @Service
 public class ActivityServiceImpl implements ActivityService {
 
     private final ActivityRepository activityRepository;
+    private final PhotoService photoService;
 
-    public ActivityServiceImpl(ActivityRepository activityRepository) {
+    public ActivityServiceImpl(ActivityRepository activityRepository, PhotoService photoService) {
         this.activityRepository = activityRepository;
+        this.photoService = photoService;
     }
 
     @Override
@@ -56,6 +69,8 @@ public class ActivityServiceImpl implements ActivityService {
             existing.setDescription(activity.getDescription());
             existing.setType(activity.getType());
             existing.setTags(activity.getTags());
+            existing.setLatitude(activity.getLatitude());
+            existing.setLongitude(activity.getLongitude());
             return existing;
         }).map(activityRepository::save);
     }
@@ -88,6 +103,10 @@ public class ActivityServiceImpl implements ActivityService {
                 existing.setType(activity.getType());
             if (activity.getTags() != null)
                 existing.setTags(activity.getTags());
+            if (activity.getLatitude() != null)
+                existing.setLatitude(activity.getLatitude());
+            if (activity.getLongitude() != null)
+                existing.setLongitude(activity.getLongitude());
             return existing;
         }).map(activityRepository::save);
     }
@@ -96,5 +115,77 @@ public class ActivityServiceImpl implements ActivityService {
     @Transactional
     public void deleteById(String id) {
         activityRepository.deleteById(id);
+    }
+
+    @Transactional
+    public Activity uploadLogo(String activityId, MultipartFile file) throws IOException, ResourceNotFoundException {
+        Activity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new ResourceNotFoundException("Attività non trovata con ID: " + activityId));
+
+        String path = photoService.uploadPhoto(EntityType.ACTIVITY, activityId, file, PhotoType.LOGO);
+        activity.setLogo(path);
+        activityRepository.save(activity);
+        return activity;
+    }
+
+    @Transactional
+    public Activity uploadCover(String activityId, MultipartFile file) throws IOException, ResourceNotFoundException {
+        Activity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new ResourceNotFoundException("Attività non trovata con ID: " + activityId));
+
+        String path = photoService.uploadPhoto(EntityType.ACTIVITY, activityId, file, PhotoType.COVER);
+        activity.setCover(path);
+        activityRepository.save(activity);
+        return activity;
+    }
+
+    @Transactional
+    public Activity uploadGallery(String activityId, MultipartFile[] files)
+            throws IOException, ResourceNotFoundException {
+        Activity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new ResourceNotFoundException("Attività non trovata con ID: " + activityId));
+
+        List<String> photos = new ArrayList<>(
+                activity.getPhotos() != null ? Arrays.asList(activity.getPhotos()) : List.of());
+
+        // Trova il prossimo progressivo disponibile
+        int nextIndex = 1;
+        Pattern pattern = Pattern.compile("gallery_" + activityId + "_(\\d+)\\.[a-z]+$");
+        for (String photo : photos) {
+            Matcher matcher = pattern.matcher(photo);
+            if (matcher.find()) {
+                int idx = Integer.parseInt(matcher.group(1));
+                if (idx >= nextIndex)
+                    nextIndex = idx + 1;
+            }
+        }
+
+        for (MultipartFile file : files) {
+            String path = photoService.uploadPhoto(EntityType.ACTIVITY, activityId, file, PhotoType.GALLERY, nextIndex);
+            photos.add(path);
+            nextIndex++;
+        }
+
+        activity.setPhotos(photos.toArray(new String[0]));
+        activityRepository.save(activity);
+        return activity;
+    }
+
+    @Transactional
+    public Activity deleteGallery(String activityId, String photoName) throws IOException, ResourceNotFoundException {
+        Activity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new ResourceNotFoundException("Attività non trovata con ID: " + activityId));
+        String[] currentPhotos = activity.getPhotos() != null ? activity.getPhotos() : new String[0];
+        List<String> photos = new ArrayList<>(Arrays.asList(currentPhotos));
+        boolean removed = photos.removeIf(p -> p.endsWith(photoName)); // o usa equals se salvi solo il nome
+
+        if (removed) {
+            String uploadPath = photoService.getBaseUploadPath();
+            photoService.deletePhoto(uploadPath + File.separator + EntityType.ACTIVITY.name().toLowerCase()
+                    + File.separator + activityId + File.separator + photoName);
+            activity.setPhotos(photos.toArray(new String[0]));
+            activityRepository.save(activity);
+        }
+        return activity;
     }
 }

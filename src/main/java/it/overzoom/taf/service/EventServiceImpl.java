@@ -1,22 +1,36 @@
 package it.overzoom.taf.service;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.model.Event;
 import it.overzoom.taf.repository.EventRepository;
+import it.overzoom.taf.type.EntityType;
+import it.overzoom.taf.type.PhotoType;
 
 @Service
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
+    private final PhotoService photoService;
 
-    public EventServiceImpl(EventRepository eventRepository) {
+    public EventServiceImpl(EventRepository eventRepository, PhotoService photoService) {
         this.eventRepository = eventRepository;
+        this.photoService = photoService;
     }
 
     @Override
@@ -114,5 +128,157 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public void deleteById(String id) {
         eventRepository.deleteById(id);
+    }
+
+    @Transactional
+    public Event uploadCover(String eventId, MultipartFile file) throws IOException, ResourceNotFoundException {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
+
+        String path = photoService.uploadPhoto(EntityType.EVENT, eventId, file, PhotoType.COVER);
+        event.setCover(path);
+        eventRepository.save(event);
+        return event;
+    }
+
+    @Transactional
+    public Event uploadGallery(String eventId, MultipartFile[] files)
+            throws IOException, ResourceNotFoundException {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
+
+        List<String> photos = new ArrayList<>(
+                event.getPhotos() != null ? Arrays.asList(event.getPhotos()) : List.of());
+
+        // Trova il prossimo progressivo disponibile
+        int nextIndex = 1;
+        Pattern pattern = Pattern.compile("gallery_" + eventId + "_(\\d+)\\.[a-z]+$");
+        for (String photo : photos) {
+            Matcher matcher = pattern.matcher(photo);
+            if (matcher.find()) {
+                int idx = Integer.parseInt(matcher.group(1));
+                if (idx >= nextIndex)
+                    nextIndex = idx + 1;
+            }
+        }
+
+        for (MultipartFile file : files) {
+            String path = photoService.uploadPhoto(EntityType.EVENT, eventId, file, PhotoType.GALLERY, nextIndex);
+            photos.add(path);
+            nextIndex++;
+        }
+
+        event.setPhotos(photos.toArray(new String[0]));
+        eventRepository.save(event);
+        return event;
+    }
+
+    @Transactional
+    public Event deleteGallery(String eventId, String photoName) throws IOException, ResourceNotFoundException {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
+        String[] currentPhotos = event.getPhotos() != null ? event.getPhotos() : new String[0];
+        List<String> photos = new ArrayList<>(Arrays.asList(currentPhotos));
+        boolean removed = photos.removeIf(p -> p.endsWith(photoName)); // o usa equals se salvi solo il nome
+
+        if (removed) {
+            String uploadPath = photoService.getBaseUploadPath();
+            photoService.deletePhoto(uploadPath + File.separator + EntityType.EVENT.name().toLowerCase()
+                    + File.separator + eventId + File.separator + photoName);
+            event.setPhotos(photos.toArray(new String[0]));
+            eventRepository.save(event);
+        }
+        return event;
+    }
+
+    public boolean canUserRegister(String eventId) {
+        Optional<Event> event = findById(eventId);
+        if (event.isPresent()) {
+            Event e = event.get();
+
+            if (e.getMaxParticipants() == null) {
+                return true;
+            }
+
+            if (e.getCurrentParticipants() >= e.getMaxParticipants()) {
+                if (!e.getIsPublic()) {
+                    return false;
+                }
+
+                if (e.getCurrentParticipants() + 1 > e.getMaxParticipants() + e.getMaxParticipants() * 0.1) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean isUserRegistered(String eventId, String userId) {
+        Optional<Event> event = findById(eventId);
+        return event.map(value -> value.getParticipants().contains(userId)).orElse(false);
+    }
+
+    public void registerUserToEvent(String eventId, String userId) throws ResourceNotFoundException,
+            BadRequestException {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
+
+        if (event.getIsCancelled()) {
+            throw new BadRequestException("L'evento è stato cancellato.");
+        }
+
+        if (event.getParticipants().contains(userId)) {
+            throw new BadRequestException("L'utente è già registrato a questo evento.");
+        }
+
+        if (!canUserRegister(eventId)) {
+            throw new BadRequestException("L'evento è pieno.");
+        }
+
+        event.addParticipant(userId);
+
+        eventRepository.save(event);
+    }
+
+    public void unregisterUserFromEvent(String eventId, String userId) throws ResourceNotFoundException,
+            BadRequestException {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
+
+        // Verifica se l'utente è iscritto
+        if (!event.getParticipants().contains(userId)) {
+            throw new BadRequestException("L'utente non è registrato a questo evento.");
+        }
+
+        // Rimuovi il partecipante
+        event.removeParticipant(userId);
+
+        // Rimuovi anche il check-in dell'utente dalla mappa
+        if (event.getCheckInTimes().containsKey(userId)) {
+            event.getCheckInTimes().remove(userId);
+        }
+
+        // Salva l'evento aggiornato
+        eventRepository.save(event);
+    }
+
+    public void checkInUser(String eventId, String userId) throws ResourceNotFoundException, BadRequestException {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
+
+        // Verifica se l'utente è registrato
+        if (!event.getParticipants().contains(userId)) {
+            throw new BadRequestException("L'utente non è registrato a questo evento.");
+        }
+
+        // Aggiungi il check-in time
+        event.addCheckIn(userId);
+
+        // Salva l'evento con il nuovo check-in
+        eventRepository.save(event);
+    }
+
+    public Page<Event> getEventsByUserId(String userId, Pageable pageable) {
+        return eventRepository.findEventsByUserId(userId, pageable);
     }
 }

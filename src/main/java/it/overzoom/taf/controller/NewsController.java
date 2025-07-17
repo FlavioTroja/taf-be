@@ -1,5 +1,6 @@
 package it.overzoom.taf.controller;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -19,8 +20,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.overzoom.taf.dto.NewsDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.NewsMapper;
@@ -62,6 +68,10 @@ public class NewsController extends BaseSearchController<News, NewsDTO> {
     }
 
     @GetMapping("")
+    @Operation(summary = "Recupera una lista di notizie", description = "Restituisce una lista paginata di tutte le notizie", responses = {
+            @ApiResponse(responseCode = "200", description = "Lista di notizie trovata e restituita"),
+            @ApiResponse(responseCode = "204", description = "Nessuna notizia trovata")
+    })
     public ResponseEntity<Page<NewsDTO>> findAll(Pageable pageable) {
         log.info("REST request to get a page of News");
         Page<News> page = newsService.findAll(pageable);
@@ -69,6 +79,10 @@ public class NewsController extends BaseSearchController<News, NewsDTO> {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Recupera una notizia per ID", description = "Restituisce i dettagli di una notizia specifica utilizzando l'ID", parameters = @Parameter(name = "id", description = "ID della notizia", required = true), responses = {
+            @ApiResponse(responseCode = "200", description = "Notizia trovata e restituita"),
+            @ApiResponse(responseCode = "404", description = "Notizia non trovata con questo ID")
+    })
     public ResponseEntity<NewsDTO> findById(@PathVariable("id") String id) throws ResourceNotFoundException {
         return newsService.findById(id)
                 .map(newsMapper::toDto)
@@ -77,6 +91,10 @@ public class NewsController extends BaseSearchController<News, NewsDTO> {
     }
 
     @PostMapping("/create")
+    @Operation(summary = "Crea una nuova notizia", description = "Crea una nuova notizia. L'ID non deve essere fornito per una nuova notizia", responses = {
+            @ApiResponse(responseCode = "201", description = "Notizia creata con successo"),
+            @ApiResponse(responseCode = "400", description = "ID fornito erroneamente per una nuova notizia")
+    })
     public ResponseEntity<NewsDTO> create(@Valid @RequestBody NewsDTO newsDTO)
             throws BadRequestException, URISyntaxException {
         log.info("REST request to save News : {}", newsDTO);
@@ -89,6 +107,11 @@ public class NewsController extends BaseSearchController<News, NewsDTO> {
     }
 
     @PutMapping("")
+    @Operation(summary = "Aggiorna una notizia", description = "Aggiorna una notizia esistente. L'ID deve essere fornito per identificare la notizia da aggiornare", responses = {
+            @ApiResponse(responseCode = "200", description = "Notizia aggiornata con successo"),
+            @ApiResponse(responseCode = "400", description = "ID non valido o mancante"),
+            @ApiResponse(responseCode = "404", description = "Notizia non trovata con l'ID fornito")
+    })
     public ResponseEntity<NewsDTO> update(@Valid @RequestBody NewsDTO newsDTO)
             throws BadRequestException, ResourceNotFoundException {
         log.info("REST request to update News: {}", newsDTO);
@@ -107,6 +130,10 @@ public class NewsController extends BaseSearchController<News, NewsDTO> {
     }
 
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @Operation(summary = "Aggiorna parzialmente una notizia", description = "Aggiorna parzialmente una notizia esistente, con la possibilità di aggiornare solo i campi forniti", parameters = @Parameter(name = "id", description = "ID della notizia da aggiornare", required = true), responses = {
+            @ApiResponse(responseCode = "200", description = "Notizia parzialmente aggiornata"),
+            @ApiResponse(responseCode = "404", description = "Notizia non trovata con l'ID fornito")
+    })
     public ResponseEntity<NewsDTO> partialUpdate(@PathVariable("id") String id,
             @RequestBody NewsDTO newsDTO)
             throws BadRequestException, ResourceNotFoundException {
@@ -125,6 +152,10 @@ public class NewsController extends BaseSearchController<News, NewsDTO> {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Cancella una notizia", description = "Cancella la notizia specificata tramite ID", parameters = @Parameter(name = "id", description = "ID della notizia da eliminare", required = true), responses = {
+            @ApiResponse(responseCode = "204", description = "Notizia eliminata con successo"),
+            @ApiResponse(responseCode = "404", description = "Notizia non trovata con l'ID fornito")
+    })
     public ResponseEntity<Void> deleteById(@PathVariable("id") String id) throws ResourceNotFoundException {
         log.info("REST request to delete News with ID: {}", id);
         if (!newsService.existsById(id)) {
@@ -132,6 +163,52 @@ public class NewsController extends BaseSearchController<News, NewsDTO> {
         }
         newsService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/upload-cover")
+    @Operation(summary = "Carica un'immagine di copertura per una notizia", description = "Carica un'immagine di copertura per la notizia specificata tramite ID", parameters = {
+            @Parameter(name = "id", description = "ID della notizia a cui associare l'immagine di copertura", required = true),
+            @Parameter(name = "file", description = "File dell'immagine di copertura", required = true)
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Immagine di copertura caricata con successo"),
+            @ApiResponse(responseCode = "404", description = "Notizia non trovata con l'ID fornito")
+    })
+    public ResponseEntity<NewsDTO> uploadCover(@PathVariable("id") String id,
+            @RequestParam("file") MultipartFile file)
+            throws ResourceNotFoundException, IOException {
+        News news = newsService.uploadCover(id, file);
+        return ResponseEntity.ok(newsMapper.toDto(news));
+    }
+
+    @PostMapping("/{id}/upload-gallery")
+    @Operation(summary = "Carica una galleria fotografica per una notizia", description = "Carica una o più foto nella galleria della notizia specificata tramite ID", parameters = {
+            @Parameter(name = "id", description = "ID della notizia a cui aggiungere foto", required = true),
+            @Parameter(name = "file", description = "File delle foto da caricare", required = true)
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Foto caricate con successo nella galleria"),
+            @ApiResponse(responseCode = "404", description = "Notizia non trovata con l'ID fornito")
+    })
+    public ResponseEntity<NewsDTO> uploadGallery(
+            @PathVariable("id") String id,
+            @RequestParam("file") MultipartFile[] file)
+            throws ResourceNotFoundException, IOException {
+        News news = newsService.uploadGallery(id, file);
+        return ResponseEntity.ok(newsMapper.toDto(news));
+    }
+
+    @DeleteMapping("/{id}/gallery/{photoName}")
+    @Operation(summary = "Elimina una foto dalla galleria di una notizia", description = "Rimuove una foto dalla galleria della notizia specificata tramite ID", parameters = {
+            @Parameter(name = "id", description = "ID della notizia da cui eliminare la foto", required = true),
+            @Parameter(name = "photoName", description = "Nome della foto da eliminare", required = true)
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Foto eliminata con successo"),
+            @ApiResponse(responseCode = "404", description = "Notizia o foto non trovata")
+    })
+    public ResponseEntity<NewsDTO> deleteGallery(@PathVariable("id") String id,
+            @PathVariable("photoName") String photoName)
+            throws ResourceNotFoundException, IOException {
+        News news = newsService.deleteGallery(id, photoName);
+        return ResponseEntity.ok(newsMapper.toDto(news));
     }
 
 }

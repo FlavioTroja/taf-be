@@ -1,12 +1,8 @@
 package it.overzoom.taf.service;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 
-import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,17 +12,19 @@ import org.springframework.web.multipart.MultipartFile;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.model.User;
 import it.overzoom.taf.repository.UserRepository;
+import it.overzoom.taf.type.EntityType;
+import it.overzoom.taf.type.PhotoType;
 import it.overzoom.taf.utils.SecurityUtils;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final Environment environment;
+    private final PhotoService photoService;
 
-    public UserServiceImpl(UserRepository userRepository, Environment environment) {
+    public UserServiceImpl(UserRepository userRepository, PhotoService photoService) {
         this.userRepository = userRepository;
-        this.environment = environment;
+        this.photoService = photoService;
     }
 
     public Page<User> findAll(Pageable pageable) {
@@ -100,22 +98,12 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public User uploadPhoto(String userId, MultipartFile file) throws IOException, ResourceNotFoundException {
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + userId));
-        String uploadPath = environment.getProperty("file-upload.path");
-        Path targetLocation = Paths.get(
-                uploadPath + "/photos",
-                "profile_" + user.getId() + "." + getFileExtension(file));
+        String path = photoService.uploadPhoto(EntityType.USER, userId, file, PhotoType.LOGO);
 
-        Files.createDirectories(targetLocation.getParent());
-
-        if (Files.exists(targetLocation)) {
-            Files.delete(targetLocation);
-        }
-
-        file.transferTo(targetLocation.toFile());
-
-        user.setPhoto(targetLocation.getFileName().toString());
+        user.setPhoto(path);
 
         userRepository.save(user);
         return user;
@@ -124,14 +112,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteById(String id) {
         userRepository.deleteById(id);
-    }
-
-    private String getFileExtension(MultipartFile file) {
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || !originalFilename.contains(".")) {
-            throw new IllegalArgumentException("File name is invalid or does not contain an extension");
-        }
-        return originalFilename.substring(originalFilename.lastIndexOf('.') + 1);
     }
 
 }

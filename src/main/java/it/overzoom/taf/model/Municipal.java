@@ -14,6 +14,7 @@ public class Municipal extends BaseEntity {
     private String description;
     private String cover;
     private String logo;
+    private String icon;
 
     public String getCity() {
         return city;
@@ -71,4 +72,11 @@ public class Municipal extends BaseEntity {
         this.logo = logo;
     }
 
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
 }

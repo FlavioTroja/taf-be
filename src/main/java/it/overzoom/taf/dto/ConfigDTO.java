@@ -1,14 +1,26 @@
 package it.overzoom.taf.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
 public class ConfigDTO extends BaseDTO {
-    @NotNull
+    @NotNull(message = "Il comune non può essere nullo")
+    @Schema(description = "ID del comune", example = "6852b4b11170095376c87d96")
     private String municipalityId;
+
+    @Schema(description = "Contesto dell'applicazione o configurazione", example = "Gestione eventi")
     private String context;
+
+    @Schema(description = "Sezione dell'applicazione o configurazione", example = "Amministrazione")
     private String section;
+
+    @Schema(description = "Componente dell'applicazione o configurazione", example = "Modulo di pagamento")
     private String component;
+
+    @Schema(description = "Stato attivo o disattivo della configurazione", example = "true")
     private Boolean isActive = true;
+
+    @Schema(description = "Ruoli associati alla configurazione", example = "[\"ROLE_ADMIN\", \"ROLE_USER\"]")
     private String[] roles;
 
     public String getMunicipalityId() {
