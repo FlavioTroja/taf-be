@@ -1,5 +1,6 @@
 package it.overzoom.taf.controller;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -19,7 +20,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -161,5 +164,50 @@ public class MunicipalController extends BaseSearchController<Municipal, Municip
         }
         municipalService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/upload-logo")
+    @Operation(summary = "Carica il logo del comune", description = "Carica un logo per il comune specificato tramite ID", parameters = {
+            @Parameter(name = "id", description = "ID del comune a cui associare il logo", required = true),
+            @Parameter(name = "file", description = "File del logo da caricare", required = true)
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Logo caricato con successo"),
+            @ApiResponse(responseCode = "404", description = "Comune non trovato con l'ID fornito")
+    })
+    public ResponseEntity<MunicipalDTO> uploadLogo(@PathVariable("id") String id,
+            @RequestParam("file") MultipartFile file)
+            throws ResourceNotFoundException, IOException {
+        Municipal municipal = municipalService.uploadLogo(id, file);
+        return ResponseEntity.ok(municipalMapper.toDto(municipal));
+    }
+
+    @PostMapping("/{id}/upload-cover")
+    @Operation(summary = "Carica l'immagine di copertura del comune", description = "Carica un'immagine di copertura per il comune specificato tramite ID", parameters = {
+            @Parameter(name = "id", description = "ID del comune a cui associare l'immagine di copertura", required = true),
+            @Parameter(name = "file", description = "File dell'immagine di copertura da caricare", required = true)
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Immagine di copertura caricata con successo"),
+            @ApiResponse(responseCode = "404", description = "Comune non trovato con l'ID fornito")
+    })
+    public ResponseEntity<MunicipalDTO> uploadCover(@PathVariable("id") String id,
+            @RequestParam("file") MultipartFile file)
+            throws ResourceNotFoundException, IOException {
+        Municipal municipal = municipalService.uploadCover(id, file);
+        return ResponseEntity.ok(municipalMapper.toDto(municipal));
+    }
+
+    @PostMapping("/{id}/upload-icon")
+    @Operation(summary = "Carica l'immagine dell'icona del comune", description = "Carica un'immagine dell'icona per il comune specificato tramite ID", parameters = {
+            @Parameter(name = "id", description = "ID del comune a cui associare l'immagine dell'icona", required = true),
+            @Parameter(name = "file", description = "File dell'immagine dell'icona da caricare", required = true)
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Immagine dell'icona caricata con successo"),
+            @ApiResponse(responseCode = "404", description = "Comune non trovato con l'ID fornito")
+    })
+    public ResponseEntity<MunicipalDTO> uploadIcon(@PathVariable("id") String id,
+            @RequestParam("file") MultipartFile file)
+            throws ResourceNotFoundException, IOException {
+        Municipal municipal = municipalService.uploadIcon(id, file);
+        return ResponseEntity.ok(municipalMapper.toDto(municipal));
     }
 }

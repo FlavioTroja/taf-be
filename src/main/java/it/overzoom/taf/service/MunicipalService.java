@@ -1,10 +1,13 @@
 package it.overzoom.taf.service;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
+import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.model.Municipal;
 
 public interface MunicipalService {
@@ -23,5 +26,13 @@ public interface MunicipalService {
 
     Optional<Municipal> findByDomain(String domain);
 
+    Optional<Municipal> findByGeolocation(double latitude, double longitude);
+
     void deleteById(String id);
+
+    Municipal uploadLogo(String id, MultipartFile file) throws IOException, ResourceNotFoundException;
+
+    Municipal uploadCover(String id, MultipartFile file) throws IOException, ResourceNotFoundException;
+
+    Municipal uploadIcon(String id, MultipartFile file) throws IOException, ResourceNotFoundException;
 }

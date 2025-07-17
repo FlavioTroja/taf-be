@@ -4,5 +4,6 @@ public enum EntityType {
     USER,
     EVENT,
     ACTIVITY,
-    NEWS
+    NEWS,
+    MUNICIPAL
 }
