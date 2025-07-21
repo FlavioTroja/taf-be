@@ -82,6 +82,10 @@ public class AuthController {
         public String confirmationCode;
     }
 
+    public static class RefreshTokenRequest {
+        public String refreshToken;
+    }
+
     @PostMapping("/login")
     @Operation(summary = "Login utente", description = "Effettua il login dell'utente utilizzando nome utente e password", parameters = {
             @Parameter(name = "usernameOrEmail", description = "Nome utente o email dell'utente", required = true),
@@ -232,4 +236,36 @@ public class AuthController {
             throw new RuntimeException("Error while calculating secret hash", e);
         }
     }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+        log.info("Refreshing token with refresh token: {}", request.refreshToken);
+        try {
+            // Cognito richiede SECRET_HASH anche nel refresh flow
+            String secretHash = calculateSecretHash("flavio.troia@gmail.com", clientId, clientSecret);
+
+            InitiateAuthRequest authRequest = InitiateAuthRequest.builder()
+                    .authFlow(AuthFlowType.REFRESH_TOKEN_AUTH)
+                    .clientId(clientId)
+                    .authParameters(Map.of(
+                            "REFRESH_TOKEN", request.refreshToken,
+                            "SECRET_HASH", secretHash))
+                    .build();
+
+            InitiateAuthResponse response = cognito.initiateAuth(authRequest);
+            AuthenticationResultType result = response.authenticationResult();
+
+            return ResponseEntity.ok(Map.of(
+                    "access_token", result.accessToken(),
+                    "id_token", result.idToken(),
+                    "expires_in", result.expiresIn(),
+                    "token_type", result.tokenType(),
+                    "refresh_token", request.refreshToken // (opzionale)
+            ));
+        } catch (Exception e) {
+            log.error("Error while refreshing token", e);
+            return ResponseEntity.status(401).body(Map.of("error", "Refresh token invalid or expired"));
+        }
+    }
+
 }
