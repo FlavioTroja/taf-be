@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -284,6 +285,29 @@ public class AuthController {
         } catch (Exception e) {
             log.error("Error during logout", e);
             return ResponseEntity.status(500).body(Map.of("error", "Logout failed: " + e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/delete-account")
+    public ResponseEntity<?> deleteAccount() {
+        String userId;
+        try {
+            userId = SecurityUtils.getCurrentUserId();
+        } catch (ResourceNotFoundException e) {
+            log.error("User not found during account deletion", e);
+            return ResponseEntity.status(404).body(Map.of("error", "Utente non trovato."));
+        }
+        log.info("Deleting account for user: {}", userId);
+        try {
+            userService.deleteByUserId(userId);
+            cognito.adminDeleteUser(builder -> builder
+                    .userPoolId(userPoolId)
+                    .username(userId)
+                    .build());
+            return ResponseEntity.ok(Map.of("message", "Account deleted successfully"));
+        } catch (Exception e) {
+            log.error("Error during account deletion", e);
+            return ResponseEntity.status(500).body(Map.of("error", "Account deletion failed: " + e.getMessage()));
         }
     }
 
