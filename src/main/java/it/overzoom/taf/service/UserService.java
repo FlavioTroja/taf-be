@@ -33,4 +33,6 @@ public interface UserService {
     User uploadPhoto(String userId, MultipartFile file) throws IOException, ResourceNotFoundException;
 
     void deleteById(String id);
+
+    void deleteByUserId(String userId);
 }

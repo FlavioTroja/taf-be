@@ -114,4 +114,11 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
     }
 
+    @Transactional
+    public void deleteByUserId(String userId) {
+        userRepository.findByUserId(userId).ifPresent(user -> {
+            userRepository.delete(user);
+        });
+    }
+
 }
