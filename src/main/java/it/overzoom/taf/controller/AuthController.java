@@ -82,6 +82,15 @@ public class AuthController {
         public String confirmationCode;
     }
 
+    public static class RefreshTokenRequest {
+        public String refreshToken;
+        public String userId;
+    }
+
+    public static class LogoutRequest {
+        public String userId;
+    }
+
     @PostMapping("/login")
     @Operation(summary = "Login utente", description = "Effettua il login dell'utente utilizzando nome utente e password", parameters = {
             @Parameter(name = "usernameOrEmail", description = "Nome utente o email dell'utente", required = true),
@@ -232,4 +241,50 @@ public class AuthController {
             throw new RuntimeException("Error while calculating secret hash", e);
         }
     }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+        log.info("Refreshing token for user: {}, refreshToken: {}", request.userId, request.refreshToken);
+        try {
+            String secretHash = calculateSecretHash(request.userId, clientId, clientSecret);
+            // Use the userId to find the user in the system if needed
+            InitiateAuthRequest authRequest = InitiateAuthRequest.builder()
+                    .authFlow(AuthFlowType.REFRESH_TOKEN_AUTH)
+                    .clientId(clientId)
+                    .authParameters(Map.of(
+                            "USERNAME", request.userId,
+                            "REFRESH_TOKEN", request.refreshToken,
+                            "SECRET_HASH", secretHash))
+                    .build();
+
+            InitiateAuthResponse response = cognito.initiateAuth(authRequest);
+            AuthenticationResultType result = response.authenticationResult();
+
+            return ResponseEntity.ok(Map.of(
+                    "access_token", result.accessToken(),
+                    "id_token", result.idToken(),
+                    "expires_in", result.expiresIn(),
+                    "token_type", result.tokenType(),
+                    "refresh_token", request.refreshToken));
+        } catch (Exception e) {
+            log.error("Error while refreshing token", e);
+            return ResponseEntity.status(401).body(Map.of("error", "Refresh token invalid or expired"));
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestBody LogoutRequest request) {
+        log.info("Logout user: {}", request.userId);
+        try {
+            cognito.adminUserGlobalSignOut(builder -> builder
+                    .userPoolId(userPoolId)
+                    .username(request.userId)
+                    .build());
+            return ResponseEntity.ok(Map.of("message", "Logout effettuato con successo"));
+        } catch (Exception e) {
+            log.error("Error during logout", e);
+            return ResponseEntity.status(500).body(Map.of("error", "Logout failed: " + e.getMessage()));
+        }
+    }
+
 }

@@ -185,6 +185,23 @@ public class UserController extends BaseSearchController<User, UserDTO> {
             throw new ResourceNotFoundException("Utente non trovato.");
         }
         userService.deleteById(id);
+
+        // 2. Soft-delete in Cognito
+        // try {
+        // cognito.adminDisableUser(builder -> builder
+        // .userPoolId(userPoolId)
+        // .username(id) // qui passa lo username, che in Cognito è l'email O lo userId,
+        // dipende come
+        // // crei l'utente
+        // .build());
+        // return ResponseEntity.ok(Map.of("message", "Utente disabilitato
+        // (soft-deleted) in Cognito e applicazione"));
+        // } catch (Exception e) {
+        // log.error("Errore durante soft-delete Cognito", e);
+        // return ResponseEntity.status(500).body(Map.of("error", "Soft-delete fallita:
+        // " + e.getMessage()));
+        // }
+
         return ResponseEntity.noContent().build();
     }
 
