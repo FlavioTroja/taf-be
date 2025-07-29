@@ -3,9 +3,11 @@ package it.overzoom.taf.controller;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
@@ -28,12 +30,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.overzoom.taf.dto.ActivityDTO;
+import it.overzoom.taf.dto.EnumDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.ActivityMapper;
 import it.overzoom.taf.model.Activity;
 import it.overzoom.taf.model.User;
 import it.overzoom.taf.service.ActivityService;
 import it.overzoom.taf.service.UserService;
+import it.overzoom.taf.type.ActivityType;
 import it.overzoom.taf.utils.SecurityUtils;
 import jakarta.validation.Valid;
 
@@ -262,4 +266,14 @@ public class ActivityController extends BaseSearchController<Activity, ActivityD
         return ResponseEntity.ok(activityMapper.toDto(activity));
     }
 
+    @GetMapping("/types")
+    @Operation(summary = "Elenco tipi di attività", description = "Restituisce la lista degli ActivityType con label e value", responses = {
+            @ApiResponse(responseCode = "200", description = "Lista tipi restituita")
+    })
+    public ResponseEntity<List<EnumDTO>> getActivityTypes() {
+        List<EnumDTO> types = Arrays.stream(ActivityType.values())
+                .map(type -> new EnumDTO(type.name(), type.getLabel()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(types);
+    }
 }

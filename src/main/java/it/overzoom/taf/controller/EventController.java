@@ -3,10 +3,12 @@ package it.overzoom.taf.controller;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
@@ -31,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import it.overzoom.taf.dto.EnumDTO;
 import it.overzoom.taf.dto.EventDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.EventMapper;
@@ -38,6 +41,7 @@ import it.overzoom.taf.model.Event;
 import it.overzoom.taf.model.User;
 import it.overzoom.taf.service.EventService;
 import it.overzoom.taf.service.UserService;
+import it.overzoom.taf.type.EventType;
 import it.overzoom.taf.utils.SecurityUtils;
 import jakarta.validation.Valid;
 
@@ -318,5 +322,16 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
         public ResponseEntity<Page<EventDTO>> getUserEvents(@PathVariable("userId") String userId, Pageable pageable) {
                 Page<Event> userEvents = eventService.getEventsByUserId(userId, pageable);
                 return ResponseEntity.ok(userEvents.map(eventMapper::toDto));
+        }
+
+        @GetMapping("/types")
+        @Operation(summary = "Elenco tipi di evento", description = "Restituisce la lista degli EventType con label e value", responses = {
+                        @ApiResponse(responseCode = "200", description = "Lista tipi evento restituita")
+        })
+        public ResponseEntity<List<EnumDTO>> getEventTypes() {
+                List<EnumDTO> types = Arrays.stream(EventType.values())
+                                .map(type -> new EnumDTO(type.name(), type.getLabel()))
+                                .collect(Collectors.toList());
+                return ResponseEntity.ok(types);
         }
 }
