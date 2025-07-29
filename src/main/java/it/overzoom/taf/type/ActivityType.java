@@ -11,6 +11,7 @@ public enum ActivityType {
     PHARMACY("Farmacia"),
     ACCOMMODATION("Alloggio"),
     SPORT("Sport"),
+    CULTURE("Cultura"),
     PLAYGROUND("Area giochi"),
     NIGHTLIFE("Vita notturna"),
     OTHER("Altro");
