@@ -2,10 +2,16 @@ package it.overzoom.taf.type;
 
 public enum ActivityType {
     FOOD,
-    CULTURE,
-    NATURE,
+    BAR,
+    WELLNESS,
+    EDUCATION,
+    RETAIL,
+    SERVICES,
+    ART,
+    PHARMACY,
+    ACCOMMODATION,
     SPORT,
-    SHOPPING,
+    PLAYGROUND,
     NIGHTLIFE,
     OTHER
 }
