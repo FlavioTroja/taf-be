@@ -1,5 +1,6 @@
 package it.overzoom.taf.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -38,6 +39,10 @@ public abstract class BaseSearchController<T, DTO> {
         return List.of();
     }
 
+    protected List<Criteria> getExtraCriteriaForCurrentUser(Map<String, Object> request) {
+        return List.of();
+    }
+
     @PostMapping("/search")
     @Operation(summary = "Esegui una ricerca", description = "Questo endpoint consente di effettuare una ricerca con filtri, ordinamento e ricerca full-text.", parameters = {
             @Parameter(name = "request", description = "Oggetto di ricerca contenente filtri, parametri di ordinamento e termini di ricerca", required = true)
@@ -53,10 +58,12 @@ public abstract class BaseSearchController<T, DTO> {
         Map<String, String> sortMap = extractMap(request.get("sort"));
 
         // Lista di criteri (AND)
-        List<Criteria> andCriteria = new java.util.ArrayList<>();
-
+        List<Criteria> andCriteria = new ArrayList<>();
+        andCriteria.addAll(getExtraCriteriaForCurrentUser(request));
         // Applica filtri normali (e &&)
         filters.forEach((key, value) -> {
+            if ("municipalityIds".equals(key))
+                return;
             if (value != null && !value.isEmpty()) {
                 andCriteria.add(
                         Criteria.where(key).regex(Pattern.compile(Pattern.quote(value), Pattern.CASE_INSENSITIVE)));

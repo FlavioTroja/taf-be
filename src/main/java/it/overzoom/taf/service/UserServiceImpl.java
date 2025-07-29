@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
             existingUser.setName(user.getName());
             existingUser.setSurname(user.getSurname());
             existingUser.setBirthDate(user.getBirthDate());
-            existingUser.setMunicipalityId(user.getMunicipalityId());
+            existingUser.setMunicipalityIds(user.getMunicipalityIds());
             return existingUser;
         }).map(userRepository::save);
     }
@@ -77,8 +77,8 @@ public class UserServiceImpl implements UserService {
                     if (user.getBirthDate() != null) {
                         existingUser.setBirthDate(user.getBirthDate());
                     }
-                    if (user.getMunicipalityId() != null) {
-                        existingUser.setMunicipalityId(user.getMunicipalityId());
+                    if (user.getMunicipalityIds() != null) {
+                        existingUser.setMunicipalityIds(user.getMunicipalityIds());
                     }
                     if (user.getVersion() != null) {
                         existingUser.setVersion(user.getVersion());

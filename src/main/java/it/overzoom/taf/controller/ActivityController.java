@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +31,10 @@ import it.overzoom.taf.dto.ActivityDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.ActivityMapper;
 import it.overzoom.taf.model.Activity;
+import it.overzoom.taf.model.User;
 import it.overzoom.taf.service.ActivityService;
+import it.overzoom.taf.service.UserService;
+import it.overzoom.taf.utils.SecurityUtils;
 import jakarta.validation.Valid;
 
 @RestController
@@ -41,12 +44,15 @@ public class ActivityController extends BaseSearchController<Activity, ActivityD
     private static final Logger log = LoggerFactory.getLogger(ActivityController.class);
     private final ActivityService activityService;
     private final ActivityMapper activityMapper;
+    private final UserService userService;
 
     public ActivityController(
             ActivityService activityService,
-            ActivityMapper activityMapper) {
+            ActivityMapper activityMapper,
+            UserService userService) {
         this.activityService = activityService;
         this.activityMapper = activityMapper;
+        this.userService = userService;
     }
 
     @Override
@@ -69,15 +75,42 @@ public class ActivityController extends BaseSearchController<Activity, ActivityD
         return List.of("name", "address", "description", "municipalityId", "type", "tags");
     }
 
-    @GetMapping("")
-    @Operation(summary = "Recupera una lista di attività", description = "Restituisce una lista paginata di tutte le attività", responses = {
-            @ApiResponse(responseCode = "200", description = "Lista delle attività recuperata con successo"),
-            @ApiResponse(responseCode = "404", description = "Nessuna attività trovata")
-    })
-    public ResponseEntity<Page<ActivityDTO>> findAll(Pageable pageable) {
-        log.info("REST request to get a page of Activities");
-        Page<Activity> page = activityService.findAll(pageable);
-        return ResponseEntity.ok().body(page.map(activityMapper::toDto));
+    @Override
+    protected List<Criteria> getExtraCriteriaForCurrentUser(Map<String, Object> request) {
+        try {
+            if (SecurityUtils.isAdmin())
+                return List.of();
+
+            String userId = SecurityUtils.getCurrentUserId();
+            User user = userService.findByUserId(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato"));
+            String[] allowedMunicipalityIds = user.getMunicipalityIds();
+            if (allowedMunicipalityIds == null || allowedMunicipalityIds.length == 0) {
+                return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+            }
+
+            Map<String, Object> filtersObj = (Map<String, Object>) request.get("filters");
+            List<String> filteredIds = null;
+            if (filtersObj != null && filtersObj.containsKey("municipalityIds")) {
+                Object val = filtersObj.get("municipalityIds");
+                if (val instanceof List<?> list) {
+                    filteredIds = list.stream()
+                            .map(Object::toString)
+                            .filter(id -> java.util.Arrays.asList(allowedMunicipalityIds).contains(id))
+                            .toList();
+                }
+            }
+
+            List<String> actualIds = (filteredIds != null) ? filteredIds : List.of(allowedMunicipalityIds);
+
+            if (actualIds.isEmpty()) {
+                return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+            }
+            return List.of(Criteria.where("municipalityId").in(actualIds));
+        } catch (ResourceNotFoundException ex) {
+            // Utente non autenticato: non restituire nulla per sicurezza
+            return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+        }
     }
 
     @GetMapping("/{id}")

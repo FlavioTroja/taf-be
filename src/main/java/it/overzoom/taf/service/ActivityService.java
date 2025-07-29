@@ -33,4 +33,6 @@ public interface ActivityService {
     Activity uploadGallery(String activityId, MultipartFile[] files) throws IOException, ResourceNotFoundException;
 
     Activity deleteGallery(String activityId, String photoName) throws IOException, ResourceNotFoundException;
+
+    Page<Activity> findByMunicipalityIdIn(String[] municipalityIds, Pageable pageable);
 }

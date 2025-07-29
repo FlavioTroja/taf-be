@@ -188,4 +188,9 @@ public class ActivityServiceImpl implements ActivityService {
         }
         return activity;
     }
+
+    @Override
+    public Page<Activity> findByMunicipalityIdIn(String[] municipalityIds, Pageable pageable) {
+        return activityRepository.findByMunicipalityIdIn(municipalityIds, pageable);
+    }
 }

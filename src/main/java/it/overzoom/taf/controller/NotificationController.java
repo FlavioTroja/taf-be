@@ -2,6 +2,7 @@ package it.overzoom.taf.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
@@ -67,8 +68,8 @@ public class NotificationController extends BaseSearchController<Notification, N
     }
 
     @Override
-    protected java.util.List<String> getSearchableFields() {
-        return java.util.List.of("message", "senderId", "receiverId", "municipalityId");
+    protected List<String> getSearchableFields() {
+        return List.of("message", "senderId", "receiverId", "municipalityId");
     }
 
     @GetMapping("")

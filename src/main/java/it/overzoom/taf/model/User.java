@@ -24,7 +24,7 @@ public class User extends BaseEntity {
     private String[] roles;
 
     @Indexed
-    private String municipalityId;
+    private String[] municipalityIds;
 
     public LocalDate getBirthDate() {
         return birthDate;
@@ -74,12 +74,12 @@ public class User extends BaseEntity {
         this.photo = photo;
     }
 
-    public String getMunicipalityId() {
-        return municipalityId;
+    public String[] getMunicipalityIds() {
+        return municipalityIds;
     }
 
-    public void setMunicipalityId(String municipalityId) {
-        this.municipalityId = municipalityId;
+    public void setMunicipalityIds(String[] municipalityIds) {
+        this.municipalityIds = municipalityIds;
     }
 
 }
