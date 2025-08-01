@@ -193,4 +193,10 @@ public class ActivityServiceImpl implements ActivityService {
     public Page<Activity> findByMunicipalityIdIn(String[] municipalityIds, Pageable pageable) {
         return activityRepository.findByMunicipalityIdIn(municipalityIds, pageable);
     }
+
+    @Override
+    public List<Activity> findActivitiesInBounds(double north, double south, double east, double west) {
+        // south < north, west < east
+        return activityRepository.findByLatitudeBetweenAndLongitudeBetween(south, north, west, east);
+    }
 }

@@ -1,6 +1,7 @@
 package it.overzoom.taf.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import it.overzoom.taf.type.ActivityTagType;
 import it.overzoom.taf.type.ActivityType;
 import jakarta.validation.constraints.NotNull;
 
@@ -44,7 +45,7 @@ public class ActivityDTO extends BaseDTO {
     private ActivityType type;
 
     @Schema(description = "Tag associati all'attività", example = "[\"tennis\", \"nuoto\", \"fitness\"]")
-    private String[] tags;
+    private ActivityTagType[] tags;
 
     @NotNull(message = "L'attività non può essere creata senza un comune")
     @Schema(description = "ID del comune associato all'attività", example = "6852b4b11170095376c87d96")
@@ -146,11 +147,11 @@ public class ActivityDTO extends BaseDTO {
         this.type = type;
     }
 
-    public String[] getTags() {
+    public ActivityTagType[] getTags() {
         return tags;
     }
 
-    public void setTags(String[] tags) {
+    public void setTags(ActivityTagType[] tags) {
         this.tags = tags;
     }
 

@@ -15,4 +15,6 @@ public interface ActivityRepository extends MongoRepository<Activity, String> {
     List<Activity> findByMunicipalityId(String municipalityId);
 
     Page<Activity> findByMunicipalityIdIn(String[] municipalityIds, Pageable pageable);
+
+    List<Activity> findByLatitudeBetweenAndLongitudeBetween(double south, double north, double west, double east);
 }

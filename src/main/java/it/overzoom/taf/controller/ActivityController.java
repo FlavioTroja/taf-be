@@ -37,6 +37,7 @@ import it.overzoom.taf.model.Activity;
 import it.overzoom.taf.model.User;
 import it.overzoom.taf.service.ActivityService;
 import it.overzoom.taf.service.UserService;
+import it.overzoom.taf.type.ActivityTagType;
 import it.overzoom.taf.type.ActivityType;
 import it.overzoom.taf.utils.SecurityUtils;
 import jakarta.validation.Valid;
@@ -276,4 +277,35 @@ public class ActivityController extends BaseSearchController<Activity, ActivityD
                 .collect(Collectors.toList());
         return ResponseEntity.ok(types);
     }
+
+    @GetMapping("/tags")
+    @Operation(summary = "Elenco tag Autism Friendly", description = "Restituisce la lista degli ActivityTagType con label e value", responses = {
+            @ApiResponse(responseCode = "200", description = "Lista tag restituita")
+    })
+    public ResponseEntity<List<EnumDTO>> getActivityTags() {
+        List<EnumDTO> tags = Arrays.stream(ActivityTagType.values())
+                .map(tag -> new EnumDTO(tag.name(), tag.getLabel()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(tags);
+    }
+
+    @GetMapping("/in-bounds")
+    @Operation(summary = "Attività in un bounding box geografico", description = "Restituisce tutte le attività all'interno di una finestra geografica (nord, sud, est, ovest).", parameters = {
+            @Parameter(name = "north", description = "Latitudine massima", required = true),
+            @Parameter(name = "south", description = "Latitudine minima", required = true),
+            @Parameter(name = "east", description = "Longitudine massima", required = true),
+            @Parameter(name = "west", description = "Longitudine minima", required = true),
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Lista attività trovate")
+    })
+    public ResponseEntity<List<ActivityDTO>> getActivitiesInBounds(
+            @RequestParam double north,
+            @RequestParam double south,
+            @RequestParam double east,
+            @RequestParam double west) {
+        List<Activity> activities = activityService.findActivitiesInBounds(north, south, east, west);
+        List<ActivityDTO> dtos = activities.stream().map(activityMapper::toDto).toList();
+        return ResponseEntity.ok(dtos);
+    }
+
 }
