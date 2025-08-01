@@ -1,8 +1,10 @@
 package it.overzoom.taf.controller;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
@@ -32,6 +34,7 @@ import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.NotificationMapper;
 import it.overzoom.taf.model.Notification;
 import it.overzoom.taf.model.User;
+import it.overzoom.taf.service.FCMService;
 import it.overzoom.taf.service.NotificationService;
 import it.overzoom.taf.service.UserService;
 import jakarta.validation.Valid;
@@ -42,14 +45,16 @@ public class NotificationController extends BaseSearchController<Notification, N
 
     private static final Logger log = LoggerFactory.getLogger(NotificationController.class);
     private final NotificationService notificationService;
+    private final FCMService fcmService;
     private final UserService userService;
     private final NotificationMapper notificationMapper;
 
     public NotificationController(NotificationService notificationService, UserService userService,
-            NotificationMapper notificationMapper) {
+            NotificationMapper notificationMapper, FCMService fcmService) {
         this.notificationService = notificationService;
         this.userService = userService;
         this.notificationMapper = notificationMapper;
+        this.fcmService = fcmService;
     }
 
     @Override
@@ -188,5 +193,15 @@ public class NotificationController extends BaseSearchController<Notification, N
         Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "timestamp"));
         Page<Notification> page = notificationService.findAll(pageable);
         return ResponseEntity.ok().body(page.map(notificationMapper::toDto));
+    }
+
+    @PostMapping("/send")
+    public String sendNotification(
+            @RequestParam String token,
+            @RequestParam String title,
+            @RequestParam String body,
+            @RequestBody(required = false) Map<String, String> data) throws IOException {
+        boolean sent = fcmService.sendNotification(token, title, body, data != null ? data : Map.of());
+        return sent ? "Notification sent!" : "Failed to send notification.";
     }
 }

@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.5.3'
+	id 'org.springframework.boot' version '3.5.4'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -38,6 +38,11 @@ dependencies {
 	// OpenAPI/Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.9'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
+
+	// FCM backend (notifiche push)
+	implementation 'com.squareup.okhttp3:okhttp:5.1.0'
+	implementation 'com.google.code.gson:gson:2.13.1'
+	implementation 'com.google.auth:google-auth-library-oauth2-http:1.37.1'
 
 	// Image processing
 	implementation 'commons-io:commons-io:2.11.0'
