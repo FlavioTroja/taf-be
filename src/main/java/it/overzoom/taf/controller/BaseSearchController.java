@@ -54,19 +54,47 @@ public abstract class BaseSearchController<T, DTO> {
         int page = (int) request.getOrDefault("page", 0);
         int limit = (int) request.getOrDefault("limit", 10);
 
-        Map<String, String> filters = extractMap(request.get("filters"));
+        Map<String, Object> filters = extractMapObject(request.get("filters"));
         Map<String, String> sortMap = extractMap(request.get("sort"));
 
         // Lista di criteri (AND)
         List<Criteria> andCriteria = new ArrayList<>();
         andCriteria.addAll(getExtraCriteriaForCurrentUser(request));
+
+        // Bounding box: filtra per coordinate se presenti
+        Map<String, Object> bbox = extractMapObject(request.get("bbox"));
+        if (bbox != null) {
+            Double north = getDouble(bbox.get("north"));
+            Double south = getDouble(bbox.get("south"));
+            Double east = getDouble(bbox.get("east"));
+            Double west = getDouble(bbox.get("west"));
+            if (north != null && south != null && east != null && west != null) {
+                andCriteria.add(Criteria.where("latitude").gte(south).lte(north));
+                andCriteria.add(Criteria.where("longitude").gte(west).lte(east));
+            }
+        }
+
         // Applica filtri normali (e &&)
         filters.forEach((key, value) -> {
             if ("municipalityIds".equals(key))
                 return;
-            if (value != null && !value.isEmpty()) {
+            if (value == null)
+                return;
+
+            // Gestione array/lista per type e tags
+            if (value instanceof List<?> listValue) {
+                if (!listValue.isEmpty()) {
+                    // Speciale: se il campo è "tags" usa .in() che su array Mongo vuol dire "almeno
+                    // uno presente"
+                    andCriteria.add(Criteria.where(key).in(listValue));
+                }
+                return;
+            }
+
+            // Gestione stringa
+            if (value instanceof String strValue && !strValue.isEmpty()) {
                 andCriteria.add(
-                        Criteria.where(key).regex(Pattern.compile(Pattern.quote(value), Pattern.CASE_INSENSITIVE)));
+                        Criteria.where(key).regex(Pattern.compile(Pattern.quote(strValue), Pattern.CASE_INSENSITIVE)));
             }
         });
 
@@ -129,4 +157,30 @@ public abstract class BaseSearchController<T, DTO> {
                 .toList();
         return Sort.by(orders);
     }
+
+    // Per estrarre Map<String, Object> in modo sicuro
+    private Map<String, Object> extractMapObject(Object obj) {
+        if (obj instanceof Map<?, ?> map) {
+            return map.entrySet().stream()
+                    .filter(e -> e.getKey() instanceof String)
+                    .collect(Collectors.toMap(
+                            e -> (String) e.getKey(),
+                            Map.Entry::getValue));
+        }
+        return null;
+    }
+
+    // Per gestire Double/null robustamente
+    private Double getDouble(Object obj) {
+        if (obj instanceof Number n)
+            return n.doubleValue();
+        if (obj instanceof String s) {
+            try {
+                return Double.parseDouble(s);
+            } catch (Exception ignore) {
+            }
+        }
+        return null;
+    }
+
 }
