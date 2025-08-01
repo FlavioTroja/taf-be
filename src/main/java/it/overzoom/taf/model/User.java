@@ -23,6 +23,8 @@ public class User extends BaseEntity {
 
     private String[] roles;
 
+    private String fcmToken;
+
     @Indexed
     private String[] municipalityIds;
 
@@ -82,4 +84,11 @@ public class User extends BaseEntity {
         this.municipalityIds = municipalityIds;
     }
 
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
 }
