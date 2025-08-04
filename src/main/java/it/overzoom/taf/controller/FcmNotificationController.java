@@ -14,11 +14,11 @@ import it.overzoom.taf.utils.SecurityUtils;
 
 @RestController
 @RequestMapping("/api/fcm")
-public class FCMController {
+public class FcmNotificationController {
 
     private final UserService userService;
 
-    public FCMController(UserService userService) {
+    public FcmNotificationController(UserService userService) {
         this.userService = userService;
     }
 

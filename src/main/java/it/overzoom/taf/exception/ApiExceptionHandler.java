@@ -53,5 +53,13 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(InvalidFcmTokenException.class)
+    public ResponseEntity<Object> handleInvalidFcmToken(InvalidFcmTokenException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("message", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
     // Puoi aggiungere altri handler per altre eccezioni custom o generiche
 }

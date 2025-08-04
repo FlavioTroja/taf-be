@@ -12,10 +12,14 @@ import org.springframework.stereotype.Service;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.nimbusds.jose.shaded.gson.Gson;
 
-import okhttp3.*;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 @Service
-public class FCMServiceImpl implements FCMService {
+public class FcmNotificationServiceImpl implements FcmNotificationService {
 
     @Value("${firebase.service-account-file}")
     private Resource serviceAccount;
@@ -66,12 +70,30 @@ public class FCMServiceImpl implements FCMService {
         Request request = new Request.Builder()
                 .url(fcmApiUrl)
                 .addHeader("Authorization", "Bearer " + accessToken)
-                .addHeader("Content-Type", "application/json; UTF-8")
+                .addHeader("Content-Type", "application/json")
                 .post(requestBody)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            return response.isSuccessful();
+            String responseBody = response.body() != null ? response.body().string() : "";
+
+            if (response.isSuccessful()) {
+                // Notifica inviata correttamente!
+                return true;
+            } else {
+                // Qui puoi analizzare il responseBody per capire se il problema è il token
+                // scaduto/non valido
+                if (responseBody.contains("UNREGISTERED") || responseBody.contains("INVALID_ARGUMENT")) {
+                    // Qui potresti gestire la pulizia del token nel DB o lanciare una eccezione
+                    // custom
+                    // Esempio: throw new InvalidFcmTokenException("Token non valido o non
+                    // registrato");
+                }
+                // Logga sempre il responseBody per debug!
+                System.err.println("Errore invio FCM: " + responseBody);
+                return false;
+            }
         }
     }
+
 }

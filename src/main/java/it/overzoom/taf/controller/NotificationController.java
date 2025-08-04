@@ -34,7 +34,7 @@ import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.NotificationMapper;
 import it.overzoom.taf.model.Notification;
 import it.overzoom.taf.model.User;
-import it.overzoom.taf.service.FCMService;
+import it.overzoom.taf.service.FcmNotificationService;
 import it.overzoom.taf.service.NotificationService;
 import it.overzoom.taf.service.UserService;
 import jakarta.validation.Valid;
@@ -45,12 +45,12 @@ public class NotificationController extends BaseSearchController<Notification, N
 
     private static final Logger log = LoggerFactory.getLogger(NotificationController.class);
     private final NotificationService notificationService;
-    private final FCMService fcmService;
+    private final FcmNotificationService fcmService;
     private final UserService userService;
     private final NotificationMapper notificationMapper;
 
     public NotificationController(NotificationService notificationService, UserService userService,
-            NotificationMapper notificationMapper, FCMService fcmService) {
+            NotificationMapper notificationMapper, FcmNotificationService fcmService) {
         this.notificationService = notificationService;
         this.userService = userService;
         this.notificationMapper = notificationMapper;

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,10 +28,13 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final PhotoService photoService;
+    private final NotificationService notificationService;
 
-    public EventServiceImpl(EventRepository eventRepository, PhotoService photoService) {
+    public EventServiceImpl(EventRepository eventRepository, PhotoService photoService,
+            NotificationService notificationService) {
         this.eventRepository = eventRepository;
         this.photoService = photoService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -238,6 +242,12 @@ public class EventServiceImpl implements EventService {
         event.addParticipant(userId);
 
         eventRepository.save(event);
+        notificationService.sendPushToUser(
+                userId,
+                "Registrazione evento",
+                "La registrazione all'evento '" + event.getTitle() + "' è avvenuta con successo!",
+                Map.of("eventId", eventId));
+
     }
 
     public void unregisterUserFromEvent(String eventId, String userId) throws ResourceNotFoundException,

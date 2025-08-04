@@ -1,7 +1,11 @@
 package it.overzoom.taf.service;
 
+import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -9,14 +13,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import it.overzoom.taf.model.Notification;
 import it.overzoom.taf.repository.NotificationRepository;
+import it.overzoom.taf.repository.UserRepository;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
 
-    private final NotificationRepository notificationRepository;
+    private static final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
-    public NotificationServiceImpl(NotificationRepository notificationRepository) {
+    private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
+    private final FcmNotificationService fcmNotificationService;
+
+    public NotificationServiceImpl(NotificationRepository notificationRepository, UserRepository userRepository,
+            FcmNotificationService fcmNotificationService) {
         this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
+        this.fcmNotificationService = fcmNotificationService;
     }
 
     @Override
@@ -81,4 +93,28 @@ public class NotificationServiceImpl implements NotificationService {
     public void deleteById(String id) {
         notificationRepository.deleteById(id);
     }
+
+    @Override
+    public void sendPushToUser(String userId, String title, String body, Map<String, String> data) {
+        userRepository.findById(userId).ifPresent(user -> {
+            String fcmToken = user.getFcmToken();
+            if (fcmToken == null || fcmToken.isEmpty())
+                return;
+
+            try {
+                boolean sent = fcmNotificationService.sendNotification(fcmToken, title, body, data);
+                // puoi fare anche logging/statistiche qui!
+                if (!sent) {
+                    log.warn("Invio FCM fallito per utente {} (token: {})", userId, fcmToken);
+                }
+            } catch (IOException ex) {
+                user.setFcmToken(null);
+                userRepository.save(user);
+                log.warn("FcmToken rimosso per user {}: {}", userId, ex.getMessage());
+            } catch (Exception ex) {
+                log.error("Errore invio notifica push a {}: {}", userId, ex.getMessage(), ex);
+            }
+        });
+    }
+
 }
