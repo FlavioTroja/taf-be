@@ -270,6 +270,11 @@ public class EventServiceImpl implements EventService {
 
         // Salva l'evento aggiornato
         eventRepository.save(event);
+        notificationService.sendPushToUser(
+                userId,
+                "Cancellazione registrazione evento",
+                "La registrazione all'evento '" + event.getTitle() + "' è stata annullata.",
+                Map.of("eventId", eventId));
     }
 
     public void checkInUser(String eventId, String userId) throws ResourceNotFoundException, BadRequestException {
