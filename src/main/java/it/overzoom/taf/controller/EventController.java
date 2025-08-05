@@ -255,38 +255,36 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
                 return ResponseEntity.ok(eventMapper.toDto(event));
         }
 
-        @PostMapping("/{eventId}/register/{userId}")
+        @PostMapping("/{eventId}/register")
         @Operation(summary = "Iscrizione di un utente a un evento", description = "Permette a un utente di registrarsi a un evento specificato tramite eventId.", parameters = {
-                        @Parameter(name = "eventId", description = "ID dell'evento a cui l'utente si deve iscrivere", required = true),
-                        @Parameter(name = "userId", description = "ID dell'utente che si deve iscrivere all'evento", required = true)
+                        @Parameter(name = "eventId", description = "ID dell'evento a cui l'utente si deve iscrivere", required = true)
         }, responses = {
                         @ApiResponse(responseCode = "200", description = "Utente registrato con successo"),
                         @ApiResponse(responseCode = "400", description = "Errore nella richiesta, ad esempio, l'utente è già registrato a questo evento"),
                         @ApiResponse(responseCode = "404", description = "Evento o utente non trovato")
         })
-        public ResponseEntity<Map<String, Object>> registerUserToEvent(@PathVariable("eventId") String eventId,
-                        @PathVariable("userId") String userId) throws ResourceNotFoundException,
+        public ResponseEntity<Map<String, Object>> registerUserToEvent(@PathVariable("eventId") String eventId)
+                        throws ResourceNotFoundException,
                         BadRequestException {
-                eventService.registerUserToEvent(eventId, userId);
+                eventService.registerUserToEvent(eventId, SecurityUtils.getCurrentUserId());
                 Map<String, Object> body = new LinkedHashMap<>();
                 body.put("status", HttpStatus.OK.value());
                 body.put("message", "Utente registrato con successo.");
                 return new ResponseEntity<>(body, HttpStatus.OK);
         }
 
-        @PostMapping("/{eventId}/unregister/{userId}")
+        @PostMapping("/{eventId}/unregister")
         @Operation(summary = "Cancellazione dell'iscrizione di un utente", description = "Permette a un utente di cancellarsi da un evento specificato tramite eventId.", parameters = {
-                        @Parameter(name = "eventId", description = "ID dell'evento da cui l'utente si deve cancellare", required = true),
-                        @Parameter(name = "userId", description = "ID dell'utente che si cancella dall'evento", required = true)
+                        @Parameter(name = "eventId", description = "ID dell'evento da cui l'utente si deve cancellare", required = true)
         }, responses = {
                         @ApiResponse(responseCode = "200", description = "Utente cancellato con successo"),
                         @ApiResponse(responseCode = "400", description = "Errore nella richiesta, ad esempio, l'utente non è iscritto a questo evento"),
                         @ApiResponse(responseCode = "404", description = "Evento o utente non trovato")
         })
-        public ResponseEntity<Map<String, Object>> unregisterUserFromEvent(@PathVariable("eventId") String eventId,
-                        @PathVariable("userId") String userId) throws ResourceNotFoundException,
+        public ResponseEntity<Map<String, Object>> unregisterUserFromEvent(@PathVariable("eventId") String eventId)
+                        throws ResourceNotFoundException,
                         BadRequestException {
-                eventService.unregisterUserFromEvent(eventId, userId);
+                eventService.unregisterUserFromEvent(eventId, SecurityUtils.getCurrentUserId());
                 Map<String, Object> body = new LinkedHashMap<>();
                 body.put("status", HttpStatus.OK.value());
                 body.put("message", "Utente cancellato con successo.");
