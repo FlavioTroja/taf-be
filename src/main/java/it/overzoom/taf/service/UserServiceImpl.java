@@ -60,6 +60,7 @@ public class UserServiceImpl implements UserService {
             existingUser.setSurname(user.getSurname());
             existingUser.setBirthDate(user.getBirthDate());
             existingUser.setMunicipalityIds(user.getMunicipalityIds());
+            existingUser.setFcmToken(user.getFcmToken());
             return existingUser;
         }).map(userRepository::save);
     }
@@ -85,6 +86,9 @@ public class UserServiceImpl implements UserService {
                     }
                     if (user.getUserId() != null) {
                         existingUser.setUserId(user.getUserId());
+                    }
+                    if (user.getFcmToken() != null) {
+                        existingUser.setFcmToken(user.getFcmToken());
                     }
 
                     return existingUser;

@@ -36,9 +36,11 @@ public class FcmNotificationController {
         User user = userService.findByUserId(SecurityUtils.getCurrentUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato"));
         String newToken = req.getToken();
-
+        if (newToken == null || newToken.isEmpty()) {
+            return ResponseEntity.badRequest().body("Il token non può essere vuoto");
+        }
         user.setFcmToken(newToken);
-        userService.update(user);
+        userService.partialUpdate(user.getId(), user);
 
         return ResponseEntity.ok().build();
     }
