@@ -19,7 +19,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.model.Event;
+import it.overzoom.taf.model.User;
 import it.overzoom.taf.repository.EventRepository;
+import it.overzoom.taf.repository.UserRepository;
 import it.overzoom.taf.type.EntityType;
 import it.overzoom.taf.type.PhotoType;
 
@@ -29,12 +31,14 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final PhotoService photoService;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     public EventServiceImpl(EventRepository eventRepository, PhotoService photoService,
-            NotificationService notificationService) {
+            NotificationService notificationService, UserRepository userRepository) {
         this.eventRepository = eventRepository;
         this.photoService = photoService;
         this.notificationService = notificationService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -231,7 +235,10 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("L'evento è stato cancellato.");
         }
 
-        if (event.getParticipants().contains(userId)) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + userId));
+
+        if (event.getParticipants().contains(user.getId())) {
             throw new BadRequestException("L'utente è già registrato a questo evento.");
         }
 
@@ -239,11 +246,11 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("L'evento è pieno.");
         }
 
-        event.addParticipant(userId);
+        event.addParticipant(user.getId());
 
         eventRepository.save(event);
         notificationService.sendPushToUser(
-                userId,
+                user.getId(),
                 "Registrazione evento",
                 "La registrazione all'evento '" + event.getTitle() + "' è avvenuta con successo!",
                 Map.of("eventId", eventId));
@@ -260,18 +267,21 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("L'utente non è registrato a questo evento.");
         }
 
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + userId));
+
         // Rimuovi il partecipante
-        event.removeParticipant(userId);
+        event.removeParticipant(user.getId());
 
         // Rimuovi anche il check-in dell'utente dalla mappa
-        if (event.getCheckInTimes().containsKey(userId)) {
-            event.getCheckInTimes().remove(userId);
+        if (event.getCheckInTimes().containsKey(user.getId())) {
+            event.getCheckInTimes().remove(user.getId());
         }
 
         // Salva l'evento aggiornato
         eventRepository.save(event);
         notificationService.sendPushToUser(
-                userId,
+                user.getId(),
                 "Cancellazione registrazione evento",
                 "La registrazione all'evento '" + event.getTitle() + "' è stata annullata.",
                 Map.of("eventId", eventId));
