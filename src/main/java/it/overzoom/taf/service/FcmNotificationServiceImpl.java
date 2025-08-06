@@ -78,7 +78,7 @@ public class FcmNotificationServiceImpl implements FcmNotificationService {
 
         try (Response response = client.newCall(request).execute()) {
             String responseBody = response.body() != null ? response.body().string() : "";
-            log.debug("FCM response: " + responseBody);
+            log.info("FCM response: " + responseBody);
             if (response.isSuccessful()) {
                 // Notifica inviata correttamente!
                 return true;
@@ -95,6 +95,9 @@ public class FcmNotificationServiceImpl implements FcmNotificationService {
                 System.err.println("Errore invio FCM: " + responseBody);
                 return false;
             }
+        } catch (Exception e) {
+            log.error("Errore durante l'invio della notifica FCM", e);
+            throw e;
         }
     }
 
