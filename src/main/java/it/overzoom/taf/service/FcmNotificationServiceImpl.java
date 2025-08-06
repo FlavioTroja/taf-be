@@ -21,6 +21,8 @@ import okhttp3.Response;
 @Service
 public class FcmNotificationServiceImpl implements FcmNotificationService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FcmNotificationServiceImpl.class);
+
     @Value("${firebase.service-account-file}")
     private Resource serviceAccount;
 
@@ -76,7 +78,7 @@ public class FcmNotificationServiceImpl implements FcmNotificationService {
 
         try (Response response = client.newCall(request).execute()) {
             String responseBody = response.body() != null ? response.body().string() : "";
-
+            log.debug("FCM response: " + responseBody);
             if (response.isSuccessful()) {
                 // Notifica inviata correttamente!
                 return true;
