@@ -262,13 +262,13 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
 
-        // Verifica se l'utente è iscritto
-        if (!event.getParticipants().contains(userId)) {
-            throw new BadRequestException("L'utente non è registrato a questo evento.");
-        }
-
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + userId));
+
+        // Verifica se l'utente è iscritto
+        if (!event.getParticipants().contains(user.getId())) {
+            throw new BadRequestException("L'utente non è registrato a questo evento.");
+        }
 
         // Rimuovi il partecipante
         event.removeParticipant(user.getId());
