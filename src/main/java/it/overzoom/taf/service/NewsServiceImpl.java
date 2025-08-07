@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,18 +18,26 @@ import org.springframework.web.multipart.MultipartFile;
 
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.model.News;
+import it.overzoom.taf.model.User;
 import it.overzoom.taf.repository.NewsRepository;
+import it.overzoom.taf.repository.UserRepository;
 import it.overzoom.taf.type.EntityType;
+import it.overzoom.taf.type.NotificationType;
 import it.overzoom.taf.type.PhotoType;
 
 @Service
 public class NewsServiceImpl implements NewsService {
 
     private final NewsRepository newsRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
     private final PhotoService photoService;
 
-    public NewsServiceImpl(NewsRepository newsRepository, PhotoService photoService) {
+    public NewsServiceImpl(NewsRepository newsRepository, NotificationService notificationService,
+            UserRepository userRepository, PhotoService photoService) {
         this.newsRepository = newsRepository;
+        this.notificationService = notificationService;
+        this.userRepository = userRepository;
         this.photoService = photoService;
     }
 
@@ -50,7 +59,19 @@ public class NewsServiceImpl implements NewsService {
     @Override
     @Transactional
     public News create(News news) {
-        return newsRepository.save(news);
+        news = newsRepository.save(news);
+
+        // Notifica push solo agli utenti iscritti
+        List<User> subscribedUsers = userRepository.findByNotificationTypesContaining(NotificationType.NEWS);
+        // invia notifica push a ciascun utente
+        for (User user : subscribedUsers) {
+            if (Arrays.asList(user.getMunicipalityIds()).contains(news.getMunicipalityId())) {
+                notificationService.sendPushToUser(user.getId(), "Nuova notizia", news.getTitle(),
+                        Map.of("newsId", news.getId(), "type", NotificationType.NEWS.name()));
+            }
+        }
+
+        return news;
     }
 
     @Override

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,19 +18,27 @@ import org.springframework.web.multipart.MultipartFile;
 
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.model.Activity;
+import it.overzoom.taf.model.User;
 import it.overzoom.taf.repository.ActivityRepository;
+import it.overzoom.taf.repository.UserRepository;
 import it.overzoom.taf.type.EntityType;
+import it.overzoom.taf.type.NotificationType;
 import it.overzoom.taf.type.PhotoType;
 
 @Service
 public class ActivityServiceImpl implements ActivityService {
 
     private final ActivityRepository activityRepository;
+    private final UserRepository userRepository;
     private final PhotoService photoService;
+    private final NotificationService notificationService;
 
-    public ActivityServiceImpl(ActivityRepository activityRepository, PhotoService photoService) {
+    public ActivityServiceImpl(ActivityRepository activityRepository, UserRepository userRepository,
+            PhotoService photoService, NotificationService notificationService) {
         this.activityRepository = activityRepository;
+        this.userRepository = userRepository;
         this.photoService = photoService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -50,7 +59,20 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional
     public Activity create(Activity activity) {
-        return activityRepository.save(activity);
+        activity = activityRepository.save(activity);
+
+        // Notifica push solo agli utenti iscritti
+        List<User> subscribedUsers = userRepository
+                .findByNotificationTypesContaining(NotificationType.ACTIVITY_COMMUNICATIONS);
+        // invia notifica push a ciascun utente
+        for (User user : subscribedUsers) {
+            if (Arrays.asList(user.getMunicipalityIds()).contains(activity.getMunicipalityId())) {
+                notificationService.sendPushToUser(user.getId(), "Nuova attività", activity.getName(),
+                        Map.of("activityId", activity.getId(), "type",
+                                NotificationType.ACTIVITY_COMMUNICATIONS.name()));
+            }
+        }
+        return activity;
     }
 
     @Override

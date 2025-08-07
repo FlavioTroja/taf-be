@@ -23,6 +23,7 @@ import it.overzoom.taf.model.User;
 import it.overzoom.taf.repository.EventRepository;
 import it.overzoom.taf.repository.UserRepository;
 import it.overzoom.taf.type.EntityType;
+import it.overzoom.taf.type.NotificationType;
 import it.overzoom.taf.type.PhotoType;
 
 @Service
@@ -59,7 +60,21 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public Event create(Event event) {
-        return eventRepository.save(event);
+        event = eventRepository.save(event);
+
+        // Notifica push solo agli utenti iscritti il cui municipalityId dell'evento è
+        // contenuto nei municipalityIds dell'utente
+        List<User> subscribedUsers = userRepository.findByNotificationTypesContaining(NotificationType.NEW_EVENTS);
+        // Invia notifica push a ciascun utente
+        for (User user : subscribedUsers) {
+            if (Arrays.asList(user.getMunicipalityIds()).contains(event.getMunicipalityId())) {
+                notificationService.sendPushToUser(user.getId(), "Nuovo evento", event.getTitle(),
+                        Map.of("eventId", event.getId(), "type",
+                                NotificationType.NEW_EVENTS.name()));
+            }
+        }
+
+        return event;
     }
 
     @Override
@@ -84,6 +99,21 @@ public class EventServiceImpl implements EventService {
             existing.setIsPublic(event.getIsPublic());
             existing.setIsCancelled(event.getIsCancelled());
             existing.setUrl(event.getUrl());
+
+            // Notifica tutti i partecipanti che l'evento è stato aggiornato
+            for (String userId : existing.getParticipants()) {
+                Optional<User> userOpt = userRepository.findById(userId);
+                userOpt.ifPresent(user -> {
+                    if (Arrays.asList(user.getNotificationTypes()).contains(NotificationType.SUBSCRIPTION_EVENTS)) {
+                        String title = "L'evento " + existing.getTitle() + " è stato aggiornato!";
+                        String message = "Dettagli dell'evento: " + existing.getTitle();
+                        notificationService.sendPushToUser(user.getId(), title, message,
+                                Map.of("eventId", existing.getId(), "type",
+                                        NotificationType.SUBSCRIPTION_EVENTS.name()));
+                    }
+                });
+            }
+
             return existing;
         }).map(eventRepository::save);
     }
@@ -92,42 +122,97 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public Optional<Event> partialUpdate(String id, Event event) {
         return eventRepository.findById(id).map(existing -> {
-            if (event.getTitle() != null)
+            boolean isUpdated = false;
+
+            if (event.getTitle() != null) {
                 existing.setTitle(event.getTitle());
-            if (event.getDescription() != null)
+                isUpdated = true;
+            }
+            if (event.getDescription() != null) {
                 existing.setDescription(event.getDescription());
-            if (event.getType() != null)
+                isUpdated = true;
+            }
+            if (event.getType() != null) {
                 existing.setType(event.getType());
-            if (event.getStartDateTime() != null)
+                isUpdated = true;
+            }
+            if (event.getStartDateTime() != null) {
                 existing.setStartDateTime(event.getStartDateTime());
-            if (event.getEndDateTime() != null)
+                isUpdated = true;
+            }
+            if (event.getEndDateTime() != null) {
                 existing.setEndDateTime(event.getEndDateTime());
-            if (event.getLocation() != null)
+                isUpdated = true;
+            }
+            if (event.getLocation() != null) {
                 existing.setLocation(event.getLocation());
-            if (event.getPhotos() != null)
+                isUpdated = true;
+            }
+            if (event.getPhotos() != null) {
                 existing.setPhotos(event.getPhotos());
-            if (event.getOrganizer() != null)
+                isUpdated = true;
+            }
+            if (event.getOrganizer() != null) {
                 existing.setOrganizer(event.getOrganizer());
-            if (event.getContactEmail() != null)
+                isUpdated = true;
+            }
+            if (event.getContactEmail() != null) {
                 existing.setContactEmail(event.getContactEmail());
-            if (event.getContactPhone() != null)
+                isUpdated = true;
+            }
+            if (event.getContactPhone() != null) {
                 existing.setContactPhone(event.getContactPhone());
-            if (event.getTags() != null)
+                isUpdated = true;
+            }
+            if (event.getTags() != null) {
                 existing.setTags(event.getTags());
-            if (event.getMunicipalityId() != null)
+                isUpdated = true;
+            }
+            if (event.getMunicipalityId() != null) {
                 existing.setMunicipalityId(event.getMunicipalityId());
-            if (event.getActivityId() != null)
+                isUpdated = true;
+            }
+            if (event.getActivityId() != null) {
                 existing.setActivityId(event.getActivityId());
-            if (event.getMaxParticipants() != null)
+                isUpdated = true;
+            }
+            if (event.getMaxParticipants() != null) {
                 existing.setMaxParticipants(event.getMaxParticipants());
-            if (event.getCurrentParticipants() != null)
+                isUpdated = true;
+            }
+            if (event.getCurrentParticipants() != null) {
                 existing.setCurrentParticipants(event.getCurrentParticipants());
-            if (event.getIsPublic() != null)
+                isUpdated = true;
+            }
+            if (event.getIsPublic() != null) {
                 existing.setIsPublic(event.getIsPublic());
-            if (event.getIsCancelled() != null)
+                isUpdated = true;
+            }
+            if (event.getIsCancelled() != null) {
                 existing.setIsCancelled(event.getIsCancelled());
-            if (event.getUrl() != null)
+                isUpdated = true;
+            }
+            if (event.getUrl() != null) {
                 existing.setUrl(event.getUrl());
+                isUpdated = true;
+            }
+
+            // Se l'evento è stato aggiornato, invia notifiche ai partecipanti
+            if (isUpdated) {
+                for (String userId : existing.getParticipants()) {
+                    Optional<User> userOpt = userRepository.findById(userId);
+                    userOpt.ifPresent(user -> {
+                        if (Arrays.asList(user.getNotificationTypes()).contains(NotificationType.SUBSCRIPTION_EVENTS)) {
+                            String title = "L'evento " + existing.getTitle() + " è stato aggiornato!";
+                            String message = "Dettagli dell'evento: " + existing.getTitle();
+                            notificationService.sendPushToUser(user.getId(), title, message,
+                                    Map.of("eventId", existing.getId(), "type",
+                                            NotificationType.SUBSCRIPTION_EVENTS.name()));
+                        }
+                    });
+                }
+            }
+
             return existing;
         }).map(eventRepository::save);
     }
