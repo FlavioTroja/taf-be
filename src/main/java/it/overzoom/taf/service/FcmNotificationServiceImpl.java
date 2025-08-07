@@ -38,13 +38,14 @@ public class FcmNotificationServiceImpl implements FcmNotificationService {
     // Ottieni token di accesso per la service account
     private String getAccessToken() throws IOException {
         if (accessToken == null || System.currentTimeMillis() > tokenExpiration) {
+            log.info("Access token scaduto o non presente, ottenendo nuovo token...");
             GoogleCredentials googleCredentials = GoogleCredentials
                     .fromStream(serviceAccount.getInputStream())
                     .createScoped(List.of("https://www.googleapis.com/auth/firebase.messaging"));
             googleCredentials.refreshIfExpired();
             accessToken = googleCredentials.getAccessToken().getTokenValue();
             tokenExpiration = googleCredentials.getAccessToken().getExpirationTime().getTime() - 60_000; // -1 min
-                                                                                                         // margine
+            log.info("Nuovo token di accesso ottenuto.");
         }
         return accessToken;
     }
@@ -52,6 +53,8 @@ public class FcmNotificationServiceImpl implements FcmNotificationService {
     // Invia la notifica
     public boolean sendNotification(String targetToken, String title, String body, Map<String, String> data)
             throws IOException {
+        log.info("Inizio invio notifica a token: {}", targetToken);
+
         String accessToken = getAccessToken();
 
         Map<String, Object> notification = Map.of(
@@ -78,21 +81,15 @@ public class FcmNotificationServiceImpl implements FcmNotificationService {
 
         try (Response response = client.newCall(request).execute()) {
             String responseBody = response.body() != null ? response.body().string() : "";
-            log.info("FCM response: " + responseBody);
+            log.info("Risposta da FCM: {}", responseBody);
             if (response.isSuccessful()) {
-                // Notifica inviata correttamente!
+                log.info("Notifica inviata correttamente.");
                 return true;
             } else {
-                // Qui puoi analizzare il responseBody per capire se il problema è il token
-                // scaduto/non valido
+                log.error("Errore nell'invio della notifica FCM. Risposta: {}", responseBody);
                 if (responseBody.contains("UNREGISTERED") || responseBody.contains("INVALID_ARGUMENT")) {
-                    // Qui potresti gestire la pulizia del token nel DB o lanciare una eccezione
-                    // custom
-                    // Esempio: throw new InvalidFcmTokenException("Token non valido o non
-                    // registrato");
+                    log.warn("Token non valido o non registrato.");
                 }
-                // Logga sempre il responseBody per debug!
-                System.err.println("Errore invio FCM: " + responseBody);
                 return false;
             }
         } catch (Exception e) {
@@ -100,5 +97,4 @@ public class FcmNotificationServiceImpl implements FcmNotificationService {
             throw e;
         }
     }
-
 }

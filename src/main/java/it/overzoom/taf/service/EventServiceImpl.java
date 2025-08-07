@@ -33,6 +33,7 @@ public class EventServiceImpl implements EventService {
     private final PhotoService photoService;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EventServiceImpl.class);
 
     public EventServiceImpl(EventRepository eventRepository, PhotoService photoService,
             NotificationService notificationService, UserRepository userRepository) {
@@ -44,33 +45,36 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Page<Event> findAll(Pageable pageable) {
+        log.info("Fetching all events with pagination: {}", pageable);
         return eventRepository.findAll(pageable);
     }
 
     @Override
     public Optional<Event> findById(String id) {
+        log.info("Fetching event by ID: {}", id);
         return eventRepository.findById(id);
     }
 
     @Override
     public boolean existsById(String id) {
+        log.info("Checking if event exists by ID: {}", id);
         return eventRepository.existsById(id);
     }
 
     @Override
     @Transactional
     public Event create(Event event) {
+        log.info("Creating new event: {}", event);
         event = eventRepository.save(event);
 
         // Notifica push solo agli utenti iscritti il cui municipalityId dell'evento è
         // contenuto nei municipalityIds dell'utente
         List<User> subscribedUsers = userRepository.findByNotificationTypesContaining(NotificationType.NEW_EVENTS);
-        // Invia notifica push a ciascun utente
         for (User user : subscribedUsers) {
             if (Arrays.asList(user.getMunicipalityIds()).contains(event.getMunicipalityId())) {
+                log.info("Sending push notification to user {} for new event: {}", user.getId(), event.getTitle());
                 notificationService.sendPushToUser(user.getId(), "Nuovo evento", event.getTitle(),
-                        Map.of("eventId", event.getId(), "type",
-                                NotificationType.NEW_EVENTS.name()));
+                        Map.of("eventId", event.getId(), "type", NotificationType.NEW_EVENTS.name()));
             }
         }
 
@@ -80,6 +84,7 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public Optional<Event> update(Event event) {
+        log.info("Updating event with ID: {}", event.getId());
         return eventRepository.findById(event.getId()).map(existing -> {
             existing.setTitle(event.getTitle());
             existing.setDescription(event.getDescription());
@@ -105,6 +110,8 @@ public class EventServiceImpl implements EventService {
                 Optional<User> userOpt = userRepository.findById(userId);
                 userOpt.ifPresent(user -> {
                     if (Arrays.asList(user.getNotificationTypes()).contains(NotificationType.SUBSCRIPTION_EVENTS)) {
+                        log.info("Sending push notification to user {} for updated event: {}", user.getId(),
+                                existing.getTitle());
                         String title = "L'evento " + existing.getTitle() + " è stato aggiornato!";
                         String message = "Dettagli dell'evento: " + existing.getTitle();
                         notificationService.sendPushToUser(user.getId(), title, message,
@@ -121,6 +128,7 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public Optional<Event> partialUpdate(String id, Event event) {
+        log.info("Partially updating event with ID: {}", id);
         return eventRepository.findById(id).map(existing -> {
             boolean isUpdated = false;
 
@@ -203,6 +211,8 @@ public class EventServiceImpl implements EventService {
                     Optional<User> userOpt = userRepository.findById(userId);
                     userOpt.ifPresent(user -> {
                         if (Arrays.asList(user.getNotificationTypes()).contains(NotificationType.SUBSCRIPTION_EVENTS)) {
+                            log.info("Sending push notification to user {} for updated event: {}", user.getId(),
+                                    existing.getTitle());
                             String title = "L'evento " + existing.getTitle() + " è stato aggiornato!";
                             String message = "Dettagli dell'evento: " + existing.getTitle();
                             notificationService.sendPushToUser(user.getId(), title, message,
@@ -220,11 +230,13 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public void deleteById(String id) {
+        log.info("Deleting event with ID: {}", id);
         eventRepository.deleteById(id);
     }
 
     @Transactional
     public Event uploadCover(String eventId, MultipartFile file) throws IOException, ResourceNotFoundException {
+        log.info("Uploading cover for event with ID: {}", eventId);
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
 
@@ -237,6 +249,7 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public Event uploadGallery(String eventId, MultipartFile[] files)
             throws IOException, ResourceNotFoundException {
+        log.info("Uploading gallery for event with ID: {}", eventId);
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
 
@@ -268,6 +281,7 @@ public class EventServiceImpl implements EventService {
 
     @Transactional
     public Event deleteGallery(String eventId, String photoName) throws IOException, ResourceNotFoundException {
+        log.info("Deleting gallery photo {} for event with ID: {}", photoName, eventId);
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
         String[] currentPhotos = event.getPhotos() != null ? event.getPhotos() : new String[0];
@@ -285,6 +299,7 @@ public class EventServiceImpl implements EventService {
     }
 
     public boolean canUserRegister(String eventId) {
+        log.info("Checking if user can register for event with ID: {}", eventId);
         Optional<Event> event = findById(eventId);
         if (event.isPresent()) {
             Event e = event.get();
@@ -307,12 +322,16 @@ public class EventServiceImpl implements EventService {
     }
 
     public boolean isUserRegistered(String eventId, String userId) {
+        log.info("Checking if user with ID: {} is registered for event with ID: {}", userId, eventId);
         Optional<Event> event = findById(eventId);
         return event.map(value -> value.getParticipants().contains(userId)).orElse(false);
     }
 
+    @Transactional
+    @Override
     public void registerUserToEvent(String eventId, String userId) throws ResourceNotFoundException,
             BadRequestException {
+        log.info("Registering user with ID: {} to event with ID: {}", userId, eventId);
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
 
@@ -342,28 +361,27 @@ public class EventServiceImpl implements EventService {
 
     }
 
+    @Transactional
+    @Override
     public void unregisterUserFromEvent(String eventId, String userId) throws ResourceNotFoundException,
             BadRequestException {
+        log.info("Unregistering user with ID: {} from event with ID: {}", userId, eventId);
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
 
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + userId));
 
-        // Verifica se l'utente è iscritto
         if (!event.getParticipants().contains(user.getId())) {
             throw new BadRequestException("L'utente non è registrato a questo evento.");
         }
 
-        // Rimuovi il partecipante
         event.removeParticipant(user.getId());
 
-        // Rimuovi anche il check-in dell'utente dalla mappa
         if (event.getCheckInTimes().containsKey(user.getId())) {
             event.getCheckInTimes().remove(user.getId());
         }
 
-        // Salva l'evento aggiornato
         eventRepository.save(event);
         notificationService.sendPushToUser(
                 user.getId(),
@@ -372,23 +390,24 @@ public class EventServiceImpl implements EventService {
                 Map.of("eventId", eventId));
     }
 
+    @Transactional
+    @Override
     public void checkInUser(String eventId, String userId) throws ResourceNotFoundException, BadRequestException {
+        log.info("Checking in user with ID: {} for event with ID: {}", userId, eventId);
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento non trovato con ID: " + eventId));
 
-        // Verifica se l'utente è registrato
         if (!event.getParticipants().contains(userId)) {
             throw new BadRequestException("L'utente non è registrato a questo evento.");
         }
 
-        // Aggiungi il check-in time
         event.addCheckIn(userId);
 
-        // Salva l'evento con il nuovo check-in
         eventRepository.save(event);
     }
 
     public Page<Event> getEventsByUserId(String userId, Pageable pageable) {
+        log.info("Fetching events for user with ID: {}", userId);
         return eventRepository.findEventsByUserId(userId, pageable);
     }
 }
