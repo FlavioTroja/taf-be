@@ -1,10 +1,10 @@
 package it.overzoom.taf.type;
 
 public enum NotificationType {
-    new_events("Nuovi eventi"),
-    news("Notizie"),
-    subscription_events("Eventi iscritti"),
-    activity_communications("Comunicazioni attività");
+    NEW_EVENTS("Nuovi eventi"),
+    NEWS("Notizie"),
+    SUBSCRIPTION_EVENTS("Eventi iscritti"),
+    ACTIVITY_COMMUNICATIONS("Comunicazioni attività");
 
     private final String label;
 
