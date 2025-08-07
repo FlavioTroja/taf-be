@@ -61,6 +61,7 @@ public class UserServiceImpl implements UserService {
             existingUser.setBirthDate(user.getBirthDate());
             existingUser.setMunicipalityIds(user.getMunicipalityIds());
             existingUser.setFcmToken(user.getFcmToken());
+            existingUser.setNotificationTypes(user.getNotificationTypes());
             return existingUser;
         }).map(userRepository::save);
     }
@@ -89,6 +90,9 @@ public class UserServiceImpl implements UserService {
                     }
                     if (user.getFcmToken() != null) {
                         existingUser.setFcmToken(user.getFcmToken());
+                    }
+                    if (user.getNotificationTypes() != null) {
+                        existingUser.setNotificationTypes(user.getNotificationTypes());
                     }
 
                     return existingUser;

@@ -3,9 +3,11 @@ package it.overzoom.taf.controller;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import it.overzoom.taf.dto.EnumDTO;
 import it.overzoom.taf.dto.NotificationDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.NotificationMapper;
@@ -37,6 +40,7 @@ import it.overzoom.taf.model.User;
 import it.overzoom.taf.service.FcmNotificationService;
 import it.overzoom.taf.service.NotificationService;
 import it.overzoom.taf.service.UserService;
+import it.overzoom.taf.type.NotificationType;
 import jakarta.validation.Valid;
 
 @RestController
@@ -203,5 +207,16 @@ public class NotificationController extends BaseSearchController<Notification, N
             @RequestBody(required = false) Map<String, String> data) throws IOException {
         boolean sent = fcmService.sendNotification(token, title, body, data != null ? data : Map.of());
         return sent ? "Notification sent!" : "Failed to send notification.";
+    }
+
+    @GetMapping("/types")
+    @Operation(summary = "Elenco tipi di notifica", description = "Restituisce la lista degli NotificationType con label e value", responses = {
+            @ApiResponse(responseCode = "200", description = "Lista tipi notifica restituita")
+    })
+    public ResponseEntity<List<EnumDTO>> getNotificationTypes() {
+        List<EnumDTO> types = Arrays.stream(NotificationType.values())
+                .map(type -> new EnumDTO(type.name(), type.getLabel()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(types);
     }
 }
