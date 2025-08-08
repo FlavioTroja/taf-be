@@ -10,6 +10,7 @@ import java.util.function.Function;
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -70,6 +71,14 @@ public class NewsController extends BaseSearchController<News, NewsDTO> {
     @Override
     protected List<String> getSearchableFields() {
         return List.of("title", "content", "author", "tags", "municipalityId");
+    }
+
+    @Override
+    protected Sort buildSort(Map<String, String> sortMap) {
+        if (sortMap == null || sortMap.isEmpty()) {
+            return Sort.by(Sort.Order.desc("created")); // Ordinamento predefinito per le news
+        }
+        return super.buildSort(sortMap); // Utilizza la logica di ordinamento di BaseSearchController
     }
 
     @Override

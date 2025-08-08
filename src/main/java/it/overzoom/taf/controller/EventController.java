@@ -3,6 +3,7 @@ package it.overzoom.taf.controller;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -83,10 +85,21 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
         }
 
         @Override
+        protected Sort buildSort(Map<String, String> sortMap) {
+                if (sortMap == null || sortMap.isEmpty()) {
+                        return Sort.by(Sort.Order.asc("startDateTime")); // Ordinamento predefinito per gli eventi
+                }
+                return super.buildSort(sortMap); // Utilizza la logica di ordinamento di BaseSearchController
+        }
+
+        @Override
         protected List<Criteria> getExtraCriteriaForCurrentUser(Map<String, Object> request) {
+                List<Criteria> criteriaList = new ArrayList<>();
+
                 try {
-                        if (SecurityUtils.isAdmin())
-                                return List.of();
+                        if (SecurityUtils.isAdmin()) {
+                                return criteriaList; // Se l'utente è admin, non aggiungiamo filtri
+                        }
 
                         String userId = SecurityUtils.getCurrentUserId();
                         User user = userService.findByUserId(userId)
@@ -114,11 +127,24 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
                         if (actualIds.isEmpty()) {
                                 return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
                         }
-                        return List.of(Criteria.where("municipalityId").in(actualIds));
+                        criteriaList.add(Criteria.where("municipalityId").in(actualIds));
+
+                        // Aggiungi il filtro per eventi attivi
+                        boolean includeExpired = request.containsKey("includeExpired")
+                                        && (boolean) request.get("includeExpired");
+                        if (!includeExpired) {
+                                criteriaList.add(Criteria.where("startDateTime").gte(System.currentTimeMillis())); // Filtro
+                                                                                                                   // per
+                                                                                                                   // eventi
+                                                                                                                   // attivi
+                        }
+
                 } catch (ResourceNotFoundException ex) {
                         // Utente non autenticato: non restituire nulla per sicurezza
                         return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
                 }
+
+                return criteriaList;
         }
 
         @GetMapping("/{id}")

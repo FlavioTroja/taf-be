@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import it.overzoom.taf.model.Event;
+import it.overzoom.taf.model.News;
 
 public abstract class BaseSearchController<T, DTO> {
 
@@ -146,18 +148,6 @@ public abstract class BaseSearchController<T, DTO> {
         return Map.of();
     }
 
-    private Sort buildSort(Map<String, String> sortMap) {
-        if (sortMap == null || sortMap.isEmpty()) {
-            return null;
-        }
-        List<Sort.Order> orders = sortMap.entrySet().stream()
-                .map(entry -> new Sort.Order(
-                        "desc".equalsIgnoreCase(entry.getValue()) ? Sort.Direction.DESC : Sort.Direction.ASC,
-                        entry.getKey()))
-                .toList();
-        return Sort.by(orders);
-    }
-
     // Per estrarre Map<String, Object> in modo sicuro
     private Map<String, Object> extractMapObject(Object obj) {
         if (obj instanceof Map<?, ?> map) {
@@ -181,6 +171,25 @@ public abstract class BaseSearchController<T, DTO> {
             }
         }
         return null;
+    }
+
+    protected Sort buildSort(Map<String, String> sortMap) {
+        if (sortMap == null || sortMap.isEmpty()) {
+            // Imposta l'ordinamento di default
+            if (getEntityClass() == Event.class) {
+                return Sort.by(Sort.Order.asc("startDateTime")); // Ordinamento per data di inizio evento
+            } else if (getEntityClass() == News.class) {
+                return Sort.by(Sort.Order.desc("created")); // Ordinamento per data di creazione
+            }
+            return null;
+        }
+
+        List<Sort.Order> orders = sortMap.entrySet().stream()
+                .map(entry -> new Sort.Order(
+                        "desc".equalsIgnoreCase(entry.getValue()) ? Sort.Direction.DESC : Sort.Direction.ASC,
+                        entry.getKey()))
+                .toList();
+        return Sort.by(orders);
     }
 
 }
