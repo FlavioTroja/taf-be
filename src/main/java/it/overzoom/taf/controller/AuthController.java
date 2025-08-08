@@ -269,14 +269,19 @@ public class AuthController {
                     .build();
 
             InitiateAuthResponse response = cognito.initiateAuth(authRequest);
-            AuthenticationResultType result = response.authenticationResult();
-
-            return ResponseEntity.ok(Map.of(
-                    "access_token", result.accessToken(),
-                    "id_token", result.idToken(),
-                    "expires_in", result.expiresIn(),
-                    "token_type", result.tokenType(),
-                    "refresh_token", request.refreshToken));
+            if (response.authenticationResult() != null) {
+                AuthenticationResultType result = response.authenticationResult();
+                log.info("Refresh token successfully used. New access token: {}", result.accessToken());
+                return ResponseEntity.ok(Map.of(
+                        "access_token", result.accessToken(),
+                        "id_token", result.idToken(),
+                        "expires_in", result.expiresIn(),
+                        "token_type", result.tokenType(),
+                        "refresh_token", request.refreshToken));
+            } else {
+                log.error("Cognito did not return a valid authentication result");
+                return ResponseEntity.status(401).body(Map.of("error", "Invalid or expired refresh token"));
+            }
         } catch (Exception e) {
             log.error("Error while refreshing token", e);
             return ResponseEntity.status(401).body(Map.of("error", "Refresh token invalid or expired"));
