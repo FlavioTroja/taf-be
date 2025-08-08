@@ -291,6 +291,13 @@ public class AuthController {
                     .userPoolId(userPoolId)
                     .username(request.userId)
                     .build());
+            // Remove FCM token from the user
+            userRepository.findByUserId(request.userId).ifPresent(user -> {
+                log.info("Removing FCM token for user: {}", user.getId());
+                user.setFcmToken(null); // Remove the FCM token
+                userRepository.save(user); // Save the changes
+            });
+
             return ResponseEntity.ok(Map.of("message", "Logout effettuato con successo"));
         } catch (Exception e) {
             log.error("Error during logout", e);
