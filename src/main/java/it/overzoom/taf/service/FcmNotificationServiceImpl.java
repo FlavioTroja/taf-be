@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.google.auth.oauth2.GoogleCredentials;
-import com.nimbusds.jose.shaded.gson.Gson;
+import com.google.gson.Gson;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
