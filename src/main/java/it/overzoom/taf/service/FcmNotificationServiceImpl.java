@@ -1,12 +1,13 @@
 package it.overzoom.taf.service;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import com.google.auth.oauth2.GoogleCredentials;
@@ -24,7 +25,7 @@ public class FcmNotificationServiceImpl implements FcmNotificationService {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FcmNotificationServiceImpl.class);
 
     @Value("${firebase.service-account-file}")
-    private Resource serviceAccount;
+    private String serviceAccountFile;
 
     @Value("${firebase.fcm-api-url}")
     private String fcmApiUrl;
@@ -37,15 +38,16 @@ public class FcmNotificationServiceImpl implements FcmNotificationService {
 
     // Ottieni token di accesso per la service account
     private String getAccessToken() throws IOException {
+        InputStream serviceAccount = new FileInputStream(serviceAccountFile);
+
         if (accessToken == null || System.currentTimeMillis() > tokenExpiration) {
             log.info("Access token scaduto o non presente, ottenendo nuovo token...");
             GoogleCredentials googleCredentials = GoogleCredentials
-                    .fromStream(serviceAccount.getInputStream())
+                    .fromStream(serviceAccount)
                     .createScoped(List.of("https://www.googleapis.com/auth/firebase.messaging"));
             googleCredentials.refreshIfExpired();
             accessToken = googleCredentials.getAccessToken().getTokenValue();
             tokenExpiration = googleCredentials.getAccessToken().getExpirationTime().getTime() - 60_000; // -1 min
-            log.info("Nuovo token di accesso ottenuto.");
         }
         return accessToken;
     }
