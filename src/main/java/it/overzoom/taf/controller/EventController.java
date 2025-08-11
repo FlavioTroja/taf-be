@@ -3,6 +3,7 @@ package it.overzoom.taf.controller;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -133,10 +134,7 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
                         boolean includeExpired = request.containsKey("includeExpired")
                                         && (boolean) request.get("includeExpired");
                         if (!includeExpired) {
-                                criteriaList.add(Criteria.where("startDateTime").gte(System.currentTimeMillis())); // Filtro
-                                                                                                                   // per
-                                                                                                                   // eventi
-                                                                                                                   // attivi
+                                criteriaList.add(Criteria.where("endDateTime").gte(LocalDateTime.now()));
                         }
 
                 } catch (ResourceNotFoundException ex) {
