@@ -179,7 +179,7 @@ public abstract class BaseSearchController<T, DTO> {
             if (getEntityClass() == Event.class) {
                 return Sort.by(Sort.Order.asc("startDateTime")); // Ordinamento per data di inizio evento
             } else if (getEntityClass() == News.class) {
-                return Sort.by(Sort.Order.desc("created")); // Ordinamento per data di creazione
+                return Sort.by(Sort.Order.desc("publicationDate")); // Ordinamento per data di creazione
             }
             return null;
         }

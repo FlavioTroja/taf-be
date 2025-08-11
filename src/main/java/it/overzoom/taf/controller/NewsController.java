@@ -76,7 +76,7 @@ public class NewsController extends BaseSearchController<News, NewsDTO> {
     @Override
     protected Sort buildSort(Map<String, String> sortMap) {
         if (sortMap == null || sortMap.isEmpty()) {
-            return Sort.by(Sort.Order.desc("created")); // Ordinamento predefinito per le news
+            return Sort.by(Sort.Order.desc("publicationDate")); // Ordinamento predefinito per le news
         }
         return super.buildSort(sortMap); // Utilizza la logica di ordinamento di BaseSearchController
     }
