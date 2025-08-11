@@ -122,6 +122,8 @@ public class NotificationServiceImpl implements NotificationService {
                 boolean sent = fcmNotificationService.sendNotification(fcmToken, title, body, data);
                 if (!sent) {
                     log.warn("Invio FCM fallito per utente {} (token: {})", userId, fcmToken);
+                    user.setFcmToken(null);
+                    userRepository.save(user);
                 } else {
                     log.info("Notifica FCM inviata con successo all'utente {}", userId);
                 }
