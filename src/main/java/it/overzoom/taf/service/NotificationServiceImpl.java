@@ -126,8 +126,8 @@ public class NotificationServiceImpl implements NotificationService {
                     log.info("Notifica FCM inviata con successo all'utente {}", userId);
                 }
             } catch (IOException ex) {
-                // user.setFcmToken(null);
-                // userRepository.save(user);
+                user.setFcmToken(null);
+                userRepository.save(user);
                 log.warn("FcmToken rimosso per user {} a causa di un errore: {}", userId, ex.getMessage());
             } catch (Exception ex) {
                 log.error("Errore durante l'invio della notifica push a {}: {}", userId, ex.getMessage(), ex);
