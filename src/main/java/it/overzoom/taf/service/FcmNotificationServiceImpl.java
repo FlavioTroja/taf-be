@@ -38,16 +38,21 @@ public class FcmNotificationServiceImpl implements FcmNotificationService {
 
     // Ottieni token di accesso per la service account
     private String getAccessToken() throws IOException {
-        InputStream serviceAccount = new FileInputStream(serviceAccountFile);
+        try {
+            InputStream serviceAccount = new FileInputStream(serviceAccountFile);
 
-        if (accessToken == null || System.currentTimeMillis() > tokenExpiration) {
-            log.info("Access token scaduto o non presente, ottenendo nuovo token...");
-            GoogleCredentials googleCredentials = GoogleCredentials
-                    .fromStream(serviceAccount)
-                    .createScoped(List.of("https://www.googleapis.com/auth/firebase.messaging"));
-            googleCredentials.refreshIfExpired();
-            accessToken = googleCredentials.getAccessToken().getTokenValue();
-            tokenExpiration = googleCredentials.getAccessToken().getExpirationTime().getTime() - 60_000; // -1 min
+            if (accessToken == null || System.currentTimeMillis() > tokenExpiration) {
+                log.info("Access token scaduto o non presente, ottenendo nuovo token...");
+                GoogleCredentials googleCredentials = GoogleCredentials
+                        .fromStream(serviceAccount)
+                        .createScoped(List.of("https://www.googleapis.com/auth/firebase.messaging"));
+                googleCredentials.refreshIfExpired();
+                accessToken = googleCredentials.getAccessToken().getTokenValue();
+                tokenExpiration = googleCredentials.getAccessToken().getExpirationTime().getTime() - 60_000; // -1 min
+            }
+        } catch (IOException e) {
+            log.error("Errore durante il caricamento del file di service account: {}", serviceAccountFile, e);
+            throw e;
         }
         return accessToken;
     }
