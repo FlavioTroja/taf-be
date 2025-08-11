@@ -29,7 +29,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.overzoom.taf.dto.UserDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.UserMapper;
+import it.overzoom.taf.model.Municipal;
 import it.overzoom.taf.model.User;
+import it.overzoom.taf.service.MunicipalService;
 import it.overzoom.taf.service.UserService;
 import it.overzoom.taf.utils.SecurityUtils;
 import jakarta.validation.Valid;
@@ -40,10 +42,12 @@ public class UserController extends BaseSearchController<User, UserDTO> {
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
+    private final MunicipalService municipalService;
     private final UserMapper userMapper;
 
-    public UserController(UserService userService, UserMapper userMapper) {
+    public UserController(UserService userService, MunicipalService municipalService, UserMapper userMapper) {
         this.userService = userService;
+        this.municipalService = municipalService;
         this.userMapper = userMapper;
     }
 
@@ -78,7 +82,9 @@ public class UserController extends BaseSearchController<User, UserDTO> {
                     .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato"));
             String[] allowedMunicipalityIds = user.getMunicipalityIds();
             if (allowedMunicipalityIds == null || allowedMunicipalityIds.length == 0) {
-                return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+                Municipal defaultMunicipal = municipalService.getDefaultMunicipal()
+                        .orElseThrow(() -> new ResourceNotFoundException("Comune predefinito non trovato"));
+                return List.of(Criteria.where("municipalityId").is(defaultMunicipal.getId()));
             }
 
             Map<String, Object> filtersObj = (Map<String, Object>) request.get("filters");
@@ -96,7 +102,9 @@ public class UserController extends BaseSearchController<User, UserDTO> {
             List<String> actualIds = (filteredIds != null) ? filteredIds : List.of(allowedMunicipalityIds);
 
             if (actualIds.isEmpty()) {
-                return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+                Municipal defaultMunicipal = municipalService.getDefaultMunicipal()
+                        .orElseThrow(() -> new ResourceNotFoundException("Comune predefinito non trovato"));
+                return List.of(Criteria.where("municipalityId").is(defaultMunicipal.getId()));
             }
             return List.of(Criteria.where("municipalityId").in(actualIds));
         } catch (ResourceNotFoundException ex) {

@@ -140,4 +140,10 @@ public class MunicipalServiceImpl implements MunicipalService {
         log.info("Icona caricata con successo per il comune con ID: {}", id);
         return municipal;
     }
+
+    @Override
+    public Optional<Municipal> getDefaultMunicipal() {
+        log.info("Recupero del comune predefinito...");
+        return municipalRepository.findByCityAndProvince("Trani", "BT");
+    }
 }

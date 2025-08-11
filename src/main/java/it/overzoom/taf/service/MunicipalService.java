@@ -28,6 +28,8 @@ public interface MunicipalService {
 
     Optional<Municipal> findByGeolocation(double latitude, double longitude);
 
+    Optional<Municipal> getDefaultMunicipal();
+
     void deleteById(String id);
 
     Municipal uploadLogo(String id, MultipartFile file) throws IOException, ResourceNotFoundException;

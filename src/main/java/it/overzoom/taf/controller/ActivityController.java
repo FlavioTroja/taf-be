@@ -34,8 +34,10 @@ import it.overzoom.taf.dto.EnumDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.ActivityMapper;
 import it.overzoom.taf.model.Activity;
+import it.overzoom.taf.model.Municipal;
 import it.overzoom.taf.model.User;
 import it.overzoom.taf.service.ActivityService;
+import it.overzoom.taf.service.MunicipalService;
 import it.overzoom.taf.service.UserService;
 import it.overzoom.taf.type.ActivityTagType;
 import it.overzoom.taf.type.ActivityType;
@@ -49,14 +51,17 @@ public class ActivityController extends BaseSearchController<Activity, ActivityD
     private static final Logger log = LoggerFactory.getLogger(ActivityController.class);
     private final ActivityService activityService;
     private final ActivityMapper activityMapper;
+    private final MunicipalService municipalService;
     private final UserService userService;
 
     public ActivityController(
             ActivityService activityService,
             ActivityMapper activityMapper,
+            MunicipalService municipalService,
             UserService userService) {
         this.activityService = activityService;
         this.activityMapper = activityMapper;
+        this.municipalService = municipalService;
         this.userService = userService;
     }
 
@@ -91,7 +96,9 @@ public class ActivityController extends BaseSearchController<Activity, ActivityD
                     .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato"));
             String[] allowedMunicipalityIds = user.getMunicipalityIds();
             if (allowedMunicipalityIds == null || allowedMunicipalityIds.length == 0) {
-                return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+                Municipal municipal = municipalService.getDefaultMunicipal()
+                        .orElseThrow(() -> new ResourceNotFoundException("Comune predefinito non trovato"));
+                return List.of(Criteria.where("municipalityId").is(municipal.getId()));
             }
 
             Map<String, Object> filtersObj = (Map<String, Object>) request.get("filters");
@@ -109,12 +116,15 @@ public class ActivityController extends BaseSearchController<Activity, ActivityD
             List<String> actualIds = (filteredIds != null) ? filteredIds : List.of(allowedMunicipalityIds);
 
             if (actualIds.isEmpty()) {
-                return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+                Municipal defaultMunicipal = municipalService.getDefaultMunicipal()
+                        .orElseThrow(() -> new ResourceNotFoundException("Comune predefinito non trovato"));
+                return List.of(Criteria.where("municipalityId").is(defaultMunicipal.getId()));
             }
             return List.of(Criteria.where("municipalityId").in(actualIds));
         } catch (ResourceNotFoundException ex) {
-            // Utente non autenticato: non restituire nulla per sicurezza
-            return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+            Municipal defaultMunicipal = municipalService.getDefaultMunicipal().orElse(null);
+            return List.of(Criteria.where("municipalityId")
+                    .is(defaultMunicipal != null ? defaultMunicipal.getId() : "__NO_MATCH__"));
         }
     }
 

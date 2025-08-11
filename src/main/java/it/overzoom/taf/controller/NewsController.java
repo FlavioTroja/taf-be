@@ -31,8 +31,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.overzoom.taf.dto.NewsDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.NewsMapper;
+import it.overzoom.taf.model.Municipal;
 import it.overzoom.taf.model.News;
 import it.overzoom.taf.model.User;
+import it.overzoom.taf.service.MunicipalService;
 import it.overzoom.taf.service.NewsService;
 import it.overzoom.taf.service.UserService;
 import it.overzoom.taf.utils.SecurityUtils;
@@ -44,11 +46,14 @@ public class NewsController extends BaseSearchController<News, NewsDTO> {
 
     private static final Logger log = LoggerFactory.getLogger(NewsController.class);
     private final NewsService newsService;
+    private final MunicipalService municipalService;
     private final NewsMapper newsMapper;
     private final UserService userService;
 
-    public NewsController(NewsService newsService, NewsMapper newsMapper, UserService userService) {
+    public NewsController(NewsService newsService, MunicipalService municipalService, NewsMapper newsMapper,
+            UserService userService) {
         this.newsService = newsService;
+        this.municipalService = municipalService;
         this.newsMapper = newsMapper;
         this.userService = userService;
     }
@@ -92,7 +97,9 @@ public class NewsController extends BaseSearchController<News, NewsDTO> {
                     .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato"));
             String[] allowedMunicipalityIds = user.getMunicipalityIds();
             if (allowedMunicipalityIds == null || allowedMunicipalityIds.length == 0) {
-                return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+                Municipal defaultMunicipal = municipalService.getDefaultMunicipal()
+                        .orElseThrow(() -> new ResourceNotFoundException("Comune predefinito non trovato"));
+                return List.of(Criteria.where("municipalityId").is(defaultMunicipal.getId()));
             }
 
             Map<String, Object> filtersObj = (Map<String, Object>) request.get("filters");
@@ -110,12 +117,16 @@ public class NewsController extends BaseSearchController<News, NewsDTO> {
             List<String> actualIds = (filteredIds != null) ? filteredIds : List.of(allowedMunicipalityIds);
 
             if (actualIds.isEmpty()) {
-                return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+                Municipal defaultMunicipal = municipalService.getDefaultMunicipal()
+                        .orElseThrow(() -> new ResourceNotFoundException("Comune predefinito non trovato"));
+                return List.of(Criteria.where("municipalityId").is(defaultMunicipal.getId()));
             }
             return List.of(Criteria.where("municipalityId").in(actualIds));
         } catch (ResourceNotFoundException ex) {
             // Utente non autenticato: non restituire nulla per sicurezza
-            return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+            Municipal defaultMunicipal = municipalService.getDefaultMunicipal().orElse(null);
+            return List.of(Criteria.where("municipalityId")
+                    .is(defaultMunicipal != null ? defaultMunicipal.getId() : "__NO_MATCH__"));
         }
     }
 

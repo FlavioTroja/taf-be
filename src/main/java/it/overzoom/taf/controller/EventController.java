@@ -41,8 +41,10 @@ import it.overzoom.taf.dto.EventDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.EventMapper;
 import it.overzoom.taf.model.Event;
+import it.overzoom.taf.model.Municipal;
 import it.overzoom.taf.model.User;
 import it.overzoom.taf.service.EventService;
+import it.overzoom.taf.service.MunicipalService;
 import it.overzoom.taf.service.UserService;
 import it.overzoom.taf.type.EventType;
 import it.overzoom.taf.utils.SecurityUtils;
@@ -54,11 +56,14 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
 
         private static final Logger log = LoggerFactory.getLogger(EventController.class);
         private final EventService eventService;
+        private final MunicipalService municipalService;
         private final EventMapper eventMapper;
         private final UserService userService;
 
-        public EventController(EventService eventService, EventMapper eventMapper, UserService userService) {
+        public EventController(EventService eventService, MunicipalService municipalService, EventMapper eventMapper,
+                        UserService userService) {
                 this.eventService = eventService;
+                this.municipalService = municipalService;
                 this.eventMapper = eventMapper;
                 this.userService = userService;
         }
@@ -107,7 +112,10 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
                                         .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato"));
                         String[] allowedMunicipalityIds = user.getMunicipalityIds();
                         if (allowedMunicipalityIds == null || allowedMunicipalityIds.length == 0) {
-                                return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+                                Municipal defaultMunicipal = municipalService.getDefaultMunicipal()
+                                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                                "Comune predefinito non trovato"));
+                                return List.of(Criteria.where("municipalityId").is(defaultMunicipal.getId()));
                         }
 
                         Map<String, Object> filtersObj = (Map<String, Object>) request.get("filters");
@@ -126,7 +134,9 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
                         List<String> actualIds = (filteredIds != null) ? filteredIds : List.of(allowedMunicipalityIds);
 
                         if (actualIds.isEmpty()) {
-                                return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+                                Municipal defaultMunicipal = municipalService.getDefaultMunicipal().orElseThrow(
+                                                () -> new ResourceNotFoundException("Comune predefinito non trovato"));
+                                return List.of(Criteria.where("municipalityId").is(defaultMunicipal.getId()));
                         }
                         criteriaList.add(Criteria.where("municipalityId").in(actualIds));
 
@@ -138,8 +148,9 @@ public class EventController extends BaseSearchController<Event, EventDTO> {
                         }
 
                 } catch (ResourceNotFoundException ex) {
-                        // Utente non autenticato: non restituire nulla per sicurezza
-                        return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+                        Municipal defaultMunicipal = municipalService.getDefaultMunicipal().orElse(null);
+                        return List.of(Criteria.where("municipalityId")
+                                        .is(defaultMunicipal != null ? defaultMunicipal.getId() : "__NO_MATCH__"));
                 }
 
                 return criteriaList;
