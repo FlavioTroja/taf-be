@@ -23,17 +23,20 @@ public class SecurityConfig {
                                                 .configurationSource(corsConfigurationSource()))
                                 .csrf(csrf -> csrf.disable())
                                 .authorizeHttpRequests(authz -> authz
-                                                .requestMatchers("/api/auth/login", "/api/auth/register",
-                                                                "/api/auth/confirm",
-                                                                "/api/auth/refresh-token")
+                                                .requestMatchers(
+                                                                "/api/auth/login", "/api/auth/register",
+                                                                "/api/auth/confirm", "/api/auth/refresh-token",
+                                                                "/api/events/search", "/api/events/types",
+                                                                "/api/news/search",
+                                                                "/api/activities/search", "/api/activities/types",
+                                                                "/api/activities/tags",
+                                                                "/swagger-ui.html", "/swagger-ui/**", "/api-docs/**",
+                                                                "/api/public/**")
                                                 .permitAll()
-                                                .requestMatchers("/api/events/search", "/api/news/search")
-                                                .permitAll()
-                                                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**")
-                                                .permitAll()
-                                                .requestMatchers("/api/public/**").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/activities/*").permitAll()
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                                 .anyRequest().authenticated())
+
                                 .oauth2ResourceServer(oauth2 -> oauth2
                                                 .jwt(jwt -> jwt.jwkSetUri(
                                                                 "https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_bSXSXHEow/.well-known/jwks.json")))
