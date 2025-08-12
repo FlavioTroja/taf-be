@@ -24,8 +24,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.overzoom.taf.dto.UserDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.UserMapper;
+import it.overzoom.taf.model.Municipal;
 import it.overzoom.taf.model.User;
-import it.overzoom.taf.service.UserService;
+import it.overzoom.taf.repository.MunicipalRepository;
+import it.overzoom.taf.repository.UserRepository;
 import it.overzoom.taf.utils.SecurityUtils;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
@@ -45,20 +47,23 @@ public class AuthController {
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     private final CognitoIdentityProviderClient cognito;
-    private final UserService userService;
+    private final UserRepository userRepository;
+    private final MunicipalRepository municipalRepository;
     private final UserMapper userMapper;
     private final String clientId;
     private final String clientSecret;
     private final String userPoolId;
 
     public AuthController(CognitoIdentityProviderClient cognito,
-            UserService userService,
+            UserRepository userRepository,
             UserMapper userMapper,
+            MunicipalRepository municipalRepository,
             @Value("${COGNITO_CLIENT_ID}") String clientId,
             @Value("${COGNITO_CLIENT_SECRET}") String clientSecret,
             @Value("${COGNITO_USER_POOL_ID}") String userPoolId) {
         this.cognito = cognito;
-        this.userService = userService;
+        this.userRepository = userRepository;
+        this.municipalRepository = municipalRepository;
         this.userMapper = userMapper;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
@@ -173,7 +178,12 @@ public class AuthController {
             user.setSurname(req.surname);
             user.setRoles(new String[] { "ROLE_USER" });
 
-            User responseFromRegistry = userService.create(user);
+            Municipal municipal = municipalRepository.findByCityAndProvince("Trani", "BT")
+                    .orElseThrow(() -> new ResourceNotFoundException("Default municipality not found"));
+
+            user.setMunicipalityIds(new String[] { municipal.getId() });
+
+            User responseFromRegistry = userRepository.save(user);
 
             return ResponseEntity.ok(Map.of(
                     "userConfirmed", signUpResponse.userConfirmed(),
@@ -220,7 +230,7 @@ public class AuthController {
             @ApiResponse(responseCode = "404", description = "Utente non trovato")
     })
     public ResponseEntity<UserDTO> getMyProfile() throws ResourceNotFoundException {
-        return userService.findByUserId(SecurityUtils.getCurrentUserId()).map(userMapper::toDto)
+        return userRepository.findByUserId(SecurityUtils.getCurrentUserId()).map(userMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato."));
     }
@@ -259,14 +269,19 @@ public class AuthController {
                     .build();
 
             InitiateAuthResponse response = cognito.initiateAuth(authRequest);
-            AuthenticationResultType result = response.authenticationResult();
-
-            return ResponseEntity.ok(Map.of(
-                    "access_token", result.accessToken(),
-                    "id_token", result.idToken(),
-                    "expires_in", result.expiresIn(),
-                    "token_type", result.tokenType(),
-                    "refresh_token", request.refreshToken));
+            if (response.authenticationResult() != null) {
+                AuthenticationResultType result = response.authenticationResult();
+                log.info("Refresh token successfully used. New access token: {}", result.accessToken());
+                return ResponseEntity.ok(Map.of(
+                        "access_token", result.accessToken(),
+                        "id_token", result.idToken(),
+                        "expires_in", result.expiresIn(),
+                        "token_type", result.tokenType(),
+                        "refresh_token", request.refreshToken));
+            } else {
+                log.error("Cognito did not return a valid authentication result");
+                return ResponseEntity.status(401).body(Map.of("error", "Invalid or expired refresh token"));
+            }
         } catch (Exception e) {
             log.error("Error while refreshing token", e);
             return ResponseEntity.status(401).body(Map.of("error", "Refresh token invalid or expired"));
@@ -281,6 +296,13 @@ public class AuthController {
                     .userPoolId(userPoolId)
                     .username(request.userId)
                     .build());
+            // Remove FCM token from the user
+            userRepository.findByUserId(request.userId).ifPresent(user -> {
+                log.info("Removing FCM token for user: {}", user.getId());
+                user.setFcmToken(null); // Remove the FCM token
+                userRepository.save(user); // Save the changes
+            });
+
             return ResponseEntity.ok(Map.of("message", "Logout effettuato con successo"));
         } catch (Exception e) {
             log.error("Error during logout", e);
@@ -299,7 +321,9 @@ public class AuthController {
         }
         log.info("Deleting account for user: {}", userId);
         try {
-            userService.deleteByUserId(userId);
+            userRepository.findByUserId(userId).ifPresent(user -> {
+                userRepository.delete(user);
+            });
             cognito.adminDeleteUser(builder -> builder
                     .userPoolId(userPoolId)
                     .username(userId)

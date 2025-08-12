@@ -28,7 +28,10 @@ public class UserDTO extends BaseDTO {
     private String[] roles;
 
     @Schema(description = "ID del comune associato all'utente", example = "6852b4b11170095376c87d96")
-    private String municipalityId;
+    private String[] municipalityIds;
+
+    @Schema(description = "Tipi di notifica a cui l'utente è iscritto", example = "[\"NEW_EVENTS\", \"NEWS\"]")
+    private String[] notificationTypes;
 
     public String getUserId() {
         return userId;
@@ -78,11 +81,19 @@ public class UserDTO extends BaseDTO {
         this.birthDate = birthDate;
     }
 
-    public String getMunicipalityId() {
-        return municipalityId;
+    public String[] getMunicipalityIds() {
+        return municipalityIds;
     }
 
-    public void setMunicipalityId(String municipalityId) {
-        this.municipalityId = municipalityId;
+    public void setMunicipalityIds(String[] municipalityIds) {
+        this.municipalityIds = municipalityIds;
+    }
+
+    public String[] getNotificationTypes() {
+        return notificationTypes;
+    }
+
+    public void setNotificationTypes(String[] notificationTypes) {
+        this.notificationTypes = notificationTypes;
     }
 }

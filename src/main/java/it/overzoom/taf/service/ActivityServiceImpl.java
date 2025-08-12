@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,45 +18,75 @@ import org.springframework.web.multipart.MultipartFile;
 
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.model.Activity;
+import it.overzoom.taf.model.User;
 import it.overzoom.taf.repository.ActivityRepository;
+import it.overzoom.taf.repository.UserRepository;
 import it.overzoom.taf.type.EntityType;
+import it.overzoom.taf.type.NotificationType;
 import it.overzoom.taf.type.PhotoType;
 
 @Service
 public class ActivityServiceImpl implements ActivityService {
 
     private final ActivityRepository activityRepository;
+    private final UserRepository userRepository;
     private final PhotoService photoService;
+    private final NotificationService notificationService;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ActivityServiceImpl.class);
 
-    public ActivityServiceImpl(ActivityRepository activityRepository, PhotoService photoService) {
+    public ActivityServiceImpl(ActivityRepository activityRepository, UserRepository userRepository,
+            PhotoService photoService, NotificationService notificationService) {
         this.activityRepository = activityRepository;
+        this.userRepository = userRepository;
         this.photoService = photoService;
+        this.notificationService = notificationService;
     }
 
     @Override
     public Page<Activity> findAll(Pageable pageable) {
+        log.info("Fetching all activities with pagination: {}", pageable);
         return activityRepository.findAll(pageable);
     }
 
     @Override
     public Optional<Activity> findById(String id) {
+        log.info("Fetching activity by ID: {}", id);
         return activityRepository.findById(id);
     }
 
     @Override
     public boolean existsById(String id) {
+        log.info("Checking if activity exists by ID: {}", id);
         return activityRepository.existsById(id);
     }
 
     @Override
     @Transactional
     public Activity create(Activity activity) {
-        return activityRepository.save(activity);
+        log.info("Creating new activity: {}", activity);
+        activity = activityRepository.save(activity);
+
+        // Notifica push solo agli utenti iscritti
+        List<User> subscribedUsers = userRepository
+                .findByNotificationTypesContaining(NotificationType.ACTIVITY_COMMUNICATIONS);
+        log.info("Sending notifications to subscribed users: {}", subscribedUsers.size());
+
+        // invia notifica push a ciascun utente
+        for (User user : subscribedUsers) {
+            if (Arrays.asList(user.getMunicipalityIds()).contains(activity.getMunicipalityId())) {
+                notificationService.sendPushToUser(user.getId(), "Nuova attività", activity.getName(),
+                        Map.of("activityId", activity.getId(), "type",
+                                NotificationType.ACTIVITY_COMMUNICATIONS.name()));
+                log.info("Notification sent to user {} for activity ID {}", user.getId(), activity.getId());
+            }
+        }
+        return activity;
     }
 
     @Override
     @Transactional
     public Optional<Activity> update(Activity activity) {
+        log.info("Updating activity with ID: {}", activity.getId());
         return activityRepository.findById(activity.getId()).map(existing -> {
             existing.setName(activity.getName());
             existing.setAddress(activity.getAddress());
@@ -78,6 +109,7 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional
     public Optional<Activity> partialUpdate(String id, Activity activity) {
+        log.info("Partially updating activity with ID: {}", id);
         return activityRepository.findById(id).map(existing -> {
             if (activity.getName() != null)
                 existing.setName(activity.getName());
@@ -114,34 +146,40 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional
     public void deleteById(String id) {
+        log.info("Deleting activity with ID: {}", id);
         activityRepository.deleteById(id);
     }
 
     @Transactional
     public Activity uploadLogo(String activityId, MultipartFile file) throws IOException, ResourceNotFoundException {
+        log.info("Uploading logo for activity ID: {}", activityId);
         Activity activity = activityRepository.findById(activityId)
                 .orElseThrow(() -> new ResourceNotFoundException("Attività non trovata con ID: " + activityId));
 
         String path = photoService.uploadPhoto(EntityType.ACTIVITY, activityId, file, PhotoType.LOGO);
         activity.setLogo(path);
         activityRepository.save(activity);
+        log.info("Logo uploaded successfully for activity ID: {}", activityId);
         return activity;
     }
 
     @Transactional
     public Activity uploadCover(String activityId, MultipartFile file) throws IOException, ResourceNotFoundException {
+        log.info("Uploading cover for activity ID: {}", activityId);
         Activity activity = activityRepository.findById(activityId)
                 .orElseThrow(() -> new ResourceNotFoundException("Attività non trovata con ID: " + activityId));
 
         String path = photoService.uploadPhoto(EntityType.ACTIVITY, activityId, file, PhotoType.COVER);
         activity.setCover(path);
         activityRepository.save(activity);
+        log.info("Cover uploaded successfully for activity ID: {}", activityId);
         return activity;
     }
 
     @Transactional
     public Activity uploadGallery(String activityId, MultipartFile[] files)
             throws IOException, ResourceNotFoundException {
+        log.info("Uploading gallery photos for activity ID: {}", activityId);
         Activity activity = activityRepository.findById(activityId)
                 .orElseThrow(() -> new ResourceNotFoundException("Attività non trovata con ID: " + activityId));
 
@@ -168,11 +206,13 @@ public class ActivityServiceImpl implements ActivityService {
 
         activity.setPhotos(photos.toArray(new String[0]));
         activityRepository.save(activity);
+        log.info("Gallery photos uploaded successfully for activity ID: {}", activityId);
         return activity;
     }
 
     @Transactional
     public Activity deleteGallery(String activityId, String photoName) throws IOException, ResourceNotFoundException {
+        log.info("Deleting gallery photo for activity ID: {} and photo: {}", activityId, photoName);
         Activity activity = activityRepository.findById(activityId)
                 .orElseThrow(() -> new ResourceNotFoundException("Attività non trovata con ID: " + activityId));
         String[] currentPhotos = activity.getPhotos() != null ? activity.getPhotos() : new String[0];
@@ -185,7 +225,23 @@ public class ActivityServiceImpl implements ActivityService {
                     + File.separator + activityId + File.separator + photoName);
             activity.setPhotos(photos.toArray(new String[0]));
             activityRepository.save(activity);
+            log.info("Gallery photo deleted successfully for activity ID: {} and photo: {}", activityId, photoName);
+        } else {
+            log.warn("Photo not found for deletion: {}", photoName);
         }
         return activity;
+    }
+
+    @Override
+    public Page<Activity> findByMunicipalityIdIn(String[] municipalityIds, Pageable pageable) {
+        log.info("Fetching activities by municipality IDs: {}", Arrays.toString(municipalityIds));
+        return activityRepository.findByMunicipalityIdIn(municipalityIds, pageable);
+    }
+
+    @Override
+    public List<Activity> findActivitiesInBounds(double north, double south, double east, double west) {
+        // south < north, west < east
+        log.info("Fetching activities within bounds: North={} South={} East={} West={}", north, south, east, west);
+        return activityRepository.findByLatitudeBetweenAndLongitudeBetween(south, north, west, east);
     }
 }

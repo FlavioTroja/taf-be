@@ -32,6 +32,7 @@ import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.MunicipalMapper;
 import it.overzoom.taf.model.Municipal;
 import it.overzoom.taf.service.MunicipalService;
+import it.overzoom.taf.service.UserService;
 import jakarta.validation.Valid;
 
 @RestController
@@ -41,10 +42,13 @@ public class MunicipalController extends BaseSearchController<Municipal, Municip
     private static final Logger log = LoggerFactory.getLogger(MunicipalController.class);
     private final MunicipalService municipalService;
     private final MunicipalMapper municipalMapper;
+    private final UserService userService;
 
-    public MunicipalController(MunicipalService municipalService, MunicipalMapper municipalMapper) {
+    public MunicipalController(MunicipalService municipalService, MunicipalMapper municipalMapper,
+            UserService userService) {
         this.municipalService = municipalService;
         this.municipalMapper = municipalMapper;
+        this.userService = userService;
     }
 
     @Override

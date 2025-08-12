@@ -1,5 +1,6 @@
 package it.overzoom.taf.service;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -22,4 +23,6 @@ public interface NotificationService {
     Optional<Notification> partialUpdate(String id, Notification notification);
 
     void deleteById(String id);
+
+    void sendPushToUser(String userId, String title, String body, Map<String, String> data);
 }

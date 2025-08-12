@@ -1,0 +1,1 @@
+{"error":"Errore interno: Handler dispatch failed: java.lang.NoClassDefFoundError: Could not initialize class sun.awt.X11FontManager"}

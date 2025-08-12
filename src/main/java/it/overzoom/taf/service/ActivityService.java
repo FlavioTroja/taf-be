@@ -1,6 +1,7 @@
 package it.overzoom.taf.service;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -33,4 +34,8 @@ public interface ActivityService {
     Activity uploadGallery(String activityId, MultipartFile[] files) throws IOException, ResourceNotFoundException;
 
     Activity deleteGallery(String activityId, String photoName) throws IOException, ResourceNotFoundException;
+
+    Page<Activity> findByMunicipalityIdIn(String[] municipalityIds, Pageable pageable);
+
+    List<Activity> findActivitiesInBounds(double north, double south, double east, double west);
 }

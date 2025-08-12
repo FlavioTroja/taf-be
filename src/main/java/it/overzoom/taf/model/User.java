@@ -6,6 +6,8 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import it.overzoom.taf.type.NotificationType;
+
 @Document(collection = "user")
 public class User extends BaseEntity {
 
@@ -23,8 +25,12 @@ public class User extends BaseEntity {
 
     private String[] roles;
 
+    private String fcmToken;
+
     @Indexed
-    private String municipalityId;
+    private String[] municipalityIds;
+
+    private NotificationType[] notificationTypes;
 
     public LocalDate getBirthDate() {
         return birthDate;
@@ -74,12 +80,27 @@ public class User extends BaseEntity {
         this.photo = photo;
     }
 
-    public String getMunicipalityId() {
-        return municipalityId;
+    public String[] getMunicipalityIds() {
+        return municipalityIds;
     }
 
-    public void setMunicipalityId(String municipalityId) {
-        this.municipalityId = municipalityId;
+    public void setMunicipalityIds(String[] municipalityIds) {
+        this.municipalityIds = municipalityIds;
     }
 
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
+
+    public NotificationType[] getNotificationTypes() {
+        return notificationTypes;
+    }
+
+    public void setNotificationTypes(NotificationType[] notificationTypes) {
+        this.notificationTypes = notificationTypes;
+    }
 }

@@ -70,3 +70,7 @@ openapi:
 
 file-upload:
     path: ${FILE_STORAGE_PATH:/tmp/taf-files}            
+
+firebase:
+    service-account-file: src/main/resources/firebase-service-account.json
+    fcm-api-url: https://fcm.googleapis.com/v1/projects/autismfriendly-4cf1e/messages:send

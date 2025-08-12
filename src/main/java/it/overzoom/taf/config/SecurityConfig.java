@@ -27,6 +27,8 @@ public class SecurityConfig {
                                                                 "/api/auth/confirm",
                                                                 "/api/auth/refresh-token")
                                                 .permitAll()
+                                                .requestMatchers("/api/events/search", "/api/news/search")
+                                                .permitAll()
                                                 .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**")
                                                 .permitAll()
                                                 .requestMatchers("/api/public/**").permitAll()

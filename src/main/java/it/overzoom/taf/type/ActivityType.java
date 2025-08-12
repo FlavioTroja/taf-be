@@ -1,11 +1,28 @@
 package it.overzoom.taf.type;
 
 public enum ActivityType {
-    FOOD,
-    CULTURE,
-    NATURE,
-    SPORT,
-    SHOPPING,
-    NIGHTLIFE,
-    OTHER
+    FOOD("Ristorazione"),
+    BAR("Bar"),
+    WELLNESS("Benessere"),
+    EDUCATION("Istruzione"),
+    RETAIL("Commercio al dettaglio"),
+    SERVICES("Servizi"),
+    ART("Arte"),
+    PHARMACY("Farmacia"),
+    ACCOMMODATION("Alloggio"),
+    SPORT("Sport"),
+    CULTURE("Cultura"),
+    PLAYGROUND("Area giochi"),
+    NIGHTLIFE("Vita notturna"),
+    OTHER("Altro");
+
+    private final String label;
+
+    ActivityType(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return label;
+    }
 }

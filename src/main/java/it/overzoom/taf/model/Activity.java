@@ -3,6 +3,7 @@ package it.overzoom.taf.model;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import it.overzoom.taf.type.ActivityTagType;
 import it.overzoom.taf.type.ActivityType;
 
 @Document(collection = "activity")
@@ -21,7 +22,7 @@ public class Activity extends BaseEntity {
     private String website;
     private String description;
     private ActivityType type;
-    private String[] tags;
+    private ActivityTagType[] tags;
     @Indexed
     private String municipalityId;
 
@@ -129,11 +130,11 @@ public class Activity extends BaseEntity {
         this.type = type;
     }
 
-    public String[] getTags() {
+    public ActivityTagType[] getTags() {
         return tags;
     }
 
-    public void setTags(String[] tags) {
+    public void setTags(ActivityTagType[] tags) {
         this.tags = tags;
     }
 

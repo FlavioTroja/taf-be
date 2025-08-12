@@ -3,14 +3,16 @@ package it.overzoom.taf.controller;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,10 +30,18 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.overzoom.taf.dto.ActivityDTO;
+import it.overzoom.taf.dto.EnumDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.ActivityMapper;
 import it.overzoom.taf.model.Activity;
+import it.overzoom.taf.model.Municipal;
+import it.overzoom.taf.model.User;
 import it.overzoom.taf.service.ActivityService;
+import it.overzoom.taf.service.MunicipalService;
+import it.overzoom.taf.service.UserService;
+import it.overzoom.taf.type.ActivityTagType;
+import it.overzoom.taf.type.ActivityType;
+import it.overzoom.taf.utils.SecurityUtils;
 import jakarta.validation.Valid;
 
 @RestController
@@ -41,12 +51,18 @@ public class ActivityController extends BaseSearchController<Activity, ActivityD
     private static final Logger log = LoggerFactory.getLogger(ActivityController.class);
     private final ActivityService activityService;
     private final ActivityMapper activityMapper;
+    private final MunicipalService municipalService;
+    private final UserService userService;
 
     public ActivityController(
             ActivityService activityService,
-            ActivityMapper activityMapper) {
+            ActivityMapper activityMapper,
+            MunicipalService municipalService,
+            UserService userService) {
         this.activityService = activityService;
         this.activityMapper = activityMapper;
+        this.municipalService = municipalService;
+        this.userService = userService;
     }
 
     @Override
@@ -69,15 +85,47 @@ public class ActivityController extends BaseSearchController<Activity, ActivityD
         return List.of("name", "address", "description", "municipalityId", "type", "tags");
     }
 
-    @GetMapping("")
-    @Operation(summary = "Recupera una lista di attività", description = "Restituisce una lista paginata di tutte le attività", responses = {
-            @ApiResponse(responseCode = "200", description = "Lista delle attività recuperata con successo"),
-            @ApiResponse(responseCode = "404", description = "Nessuna attività trovata")
-    })
-    public ResponseEntity<Page<ActivityDTO>> findAll(Pageable pageable) {
-        log.info("REST request to get a page of Activities");
-        Page<Activity> page = activityService.findAll(pageable);
-        return ResponseEntity.ok().body(page.map(activityMapper::toDto));
+    @Override
+    protected List<Criteria> getExtraCriteriaForCurrentUser(Map<String, Object> request) {
+        try {
+            if (SecurityUtils.isAdmin())
+                return List.of();
+
+            String userId = SecurityUtils.getCurrentUserId();
+            User user = userService.findByUserId(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato"));
+            String[] allowedMunicipalityIds = user.getMunicipalityIds();
+            if (allowedMunicipalityIds == null || allowedMunicipalityIds.length == 0) {
+                Municipal municipal = municipalService.getDefaultMunicipal()
+                        .orElseThrow(() -> new ResourceNotFoundException("Comune predefinito non trovato"));
+                return List.of(Criteria.where("municipalityId").is(municipal.getId()));
+            }
+
+            Map<String, Object> filtersObj = (Map<String, Object>) request.get("filters");
+            List<String> filteredIds = null;
+            if (filtersObj != null && filtersObj.containsKey("municipalityIds")) {
+                Object val = filtersObj.get("municipalityIds");
+                if (val instanceof List<?> list) {
+                    filteredIds = list.stream()
+                            .map(Object::toString)
+                            .filter(id -> java.util.Arrays.asList(allowedMunicipalityIds).contains(id))
+                            .toList();
+                }
+            }
+
+            List<String> actualIds = (filteredIds != null) ? filteredIds : List.of(allowedMunicipalityIds);
+
+            if (actualIds.isEmpty()) {
+                Municipal defaultMunicipal = municipalService.getDefaultMunicipal()
+                        .orElseThrow(() -> new ResourceNotFoundException("Comune predefinito non trovato"));
+                return List.of(Criteria.where("municipalityId").is(defaultMunicipal.getId()));
+            }
+            return List.of(Criteria.where("municipalityId").in(actualIds));
+        } catch (ResourceNotFoundException ex) {
+            Municipal defaultMunicipal = municipalService.getDefaultMunicipal().orElse(null);
+            return List.of(Criteria.where("municipalityId")
+                    .is(defaultMunicipal != null ? defaultMunicipal.getId() : "__NO_MATCH__"));
+        }
     }
 
     @GetMapping("/{id}")
@@ -227,6 +275,47 @@ public class ActivityController extends BaseSearchController<Activity, ActivityD
             throws ResourceNotFoundException, IOException {
         Activity activity = activityService.deleteGallery(id, photoName);
         return ResponseEntity.ok(activityMapper.toDto(activity));
+    }
+
+    @GetMapping("/types")
+    @Operation(summary = "Elenco tipi di attività", description = "Restituisce la lista degli ActivityType con label e value", responses = {
+            @ApiResponse(responseCode = "200", description = "Lista tipi restituita")
+    })
+    public ResponseEntity<List<EnumDTO>> getActivityTypes() {
+        List<EnumDTO> types = Arrays.stream(ActivityType.values())
+                .map(type -> new EnumDTO(type.name(), type.getLabel()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(types);
+    }
+
+    @GetMapping("/tags")
+    @Operation(summary = "Elenco tag Autism Friendly", description = "Restituisce la lista degli ActivityTagType con label e value", responses = {
+            @ApiResponse(responseCode = "200", description = "Lista tag restituita")
+    })
+    public ResponseEntity<List<EnumDTO>> getActivityTags() {
+        List<EnumDTO> tags = Arrays.stream(ActivityTagType.values())
+                .map(tag -> new EnumDTO(tag.name(), tag.getLabel()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(tags);
+    }
+
+    @GetMapping("/in-bounds")
+    @Operation(summary = "Attività in un bounding box geografico", description = "Restituisce tutte le attività all'interno di una finestra geografica (nord, sud, est, ovest).", parameters = {
+            @Parameter(name = "north", description = "Latitudine massima", required = true),
+            @Parameter(name = "south", description = "Latitudine minima", required = true),
+            @Parameter(name = "east", description = "Longitudine massima", required = true),
+            @Parameter(name = "west", description = "Longitudine minima", required = true),
+    }, responses = {
+            @ApiResponse(responseCode = "200", description = "Lista attività trovate")
+    })
+    public ResponseEntity<List<ActivityDTO>> getActivitiesInBounds(
+            @RequestParam double north,
+            @RequestParam double south,
+            @RequestParam double east,
+            @RequestParam double west) {
+        List<Activity> activities = activityService.findActivitiesInBounds(north, south, east, west);
+        List<ActivityDTO> dtos = activities.stream().map(activityMapper::toDto).toList();
+        return ResponseEntity.ok(dtos);
     }
 
 }

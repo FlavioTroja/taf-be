@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,8 +29,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.overzoom.taf.dto.UserDTO;
 import it.overzoom.taf.exception.ResourceNotFoundException;
 import it.overzoom.taf.mapper.UserMapper;
+import it.overzoom.taf.model.Municipal;
 import it.overzoom.taf.model.User;
+import it.overzoom.taf.service.MunicipalService;
 import it.overzoom.taf.service.UserService;
+import it.overzoom.taf.utils.SecurityUtils;
 import jakarta.validation.Valid;
 
 @RestController
@@ -39,10 +42,12 @@ public class UserController extends BaseSearchController<User, UserDTO> {
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
+    private final MunicipalService municipalService;
     private final UserMapper userMapper;
 
-    public UserController(UserService userService, UserMapper userMapper) {
+    public UserController(UserService userService, MunicipalService municipalService, UserMapper userMapper) {
         this.userService = userService;
+        this.municipalService = municipalService;
         this.userMapper = userMapper;
     }
 
@@ -66,16 +71,46 @@ public class UserController extends BaseSearchController<User, UserDTO> {
         return List.of("name", "surname", "userId", "municipalityId");
     }
 
-    @GetMapping("")
-    @Operation(summary = "Recupera una lista di utenti", description = "Restituisce una lista paginata di tutti gli utenti", responses = {
-            @ApiResponse(responseCode = "200", description = "Lista di utenti trovata e restituita"),
-            @ApiResponse(responseCode = "204", description = "Nessun utente trovato")
-    })
-    public ResponseEntity<Page<UserDTO>> findAll(
-            Pageable pageable) {
-        log.info("REST request to get a page of Users");
-        Page<User> page = userService.findAll(pageable);
-        return ResponseEntity.ok().body(page.map(userMapper::toDto));
+    @Override
+    protected List<Criteria> getExtraCriteriaForCurrentUser(Map<String, Object> request) {
+        try {
+            if (SecurityUtils.isAdmin())
+                return List.of();
+
+            String userId = SecurityUtils.getCurrentUserId();
+            User user = userService.findByUserId(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato"));
+            String[] allowedMunicipalityIds = user.getMunicipalityIds();
+            if (allowedMunicipalityIds == null || allowedMunicipalityIds.length == 0) {
+                Municipal defaultMunicipal = municipalService.getDefaultMunicipal()
+                        .orElseThrow(() -> new ResourceNotFoundException("Comune predefinito non trovato"));
+                return List.of(Criteria.where("municipalityId").is(defaultMunicipal.getId()));
+            }
+
+            Map<String, Object> filtersObj = (Map<String, Object>) request.get("filters");
+            List<String> filteredIds = null;
+            if (filtersObj != null && filtersObj.containsKey("municipalityIds")) {
+                Object val = filtersObj.get("municipalityIds");
+                if (val instanceof List<?> list) {
+                    filteredIds = list.stream()
+                            .map(Object::toString)
+                            .filter(id -> java.util.Arrays.asList(allowedMunicipalityIds).contains(id))
+                            .toList();
+                }
+            }
+
+            List<String> actualIds = (filteredIds != null) ? filteredIds : List.of(allowedMunicipalityIds);
+
+            if (actualIds.isEmpty()) {
+                Municipal defaultMunicipal = municipalService.getDefaultMunicipal()
+                        .orElseThrow(() -> new ResourceNotFoundException("Comune predefinito non trovato"));
+                return List.of(Criteria.where("municipalityId").is(defaultMunicipal.getId()));
+            }
+            return List.of(Criteria.where("municipalityId").in(actualIds));
+        } catch (ResourceNotFoundException ex) {
+            // Utente non autenticato: non restituire nulla per sicurezza
+            return List.of(Criteria.where("municipalityId").is("__NO_MATCH__"));
+        }
     }
 
     @GetMapping("/{id}")
