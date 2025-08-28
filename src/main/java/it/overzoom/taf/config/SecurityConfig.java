@@ -50,8 +50,8 @@ public class SecurityConfig {
                 CorsConfiguration config = new CorsConfiguration();
                 config.setAllowedOrigins(List.of(
                                 "http://localhost:4200", // Development environment
-                                "https://trani.autismfriendly.overzoom.it" // Production environment
-                ));
+                                "https://trani.autismfriendly.overzoom.it", "https://trani.autismfriendly.city",
+                                "https://app.traniautismfriendly.it"));
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                 config.addAllowedHeader("*");
                 config.addAllowedMethod("*");
