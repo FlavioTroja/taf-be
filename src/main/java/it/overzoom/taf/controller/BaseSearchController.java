@@ -78,7 +78,7 @@ public abstract class BaseSearchController<T, DTO> {
 
         // Applica filtri normali (e &&)
         filters.forEach((key, value) -> {
-            if ("municipalityIds".equals(key))
+            if ("municipalityIds".equals(key) || "municipalityId".equals(key))
                 return;
             if (value == null)
                 return;
